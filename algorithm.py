@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.integrate
 
 class algo:
     grav = float(0.0)
@@ -11,8 +10,6 @@ class algo:
     drag_coef = float(0.0)
     time_step = float(0.0)
     total_time = float(0.0)
-    f_v = lambda self,t,a,v0: v0 + a*t
-    f_d = lambda self,t,a,v0,d0: v0 * t + 0.5*a*(t**2) + d0
     
     def get_angle(self,x,y):
         if x == 0:
@@ -32,8 +29,8 @@ class algo:
         self.total_time = sys_params['total_time']
 
     def execute(self):
-        f_v = self.f_v
-        f_d = self.f_d
+        f_v = lambda self,t,a,v0: v0 + a*t
+        f_d = lambda self,t,a,v0,d0: v0 * t + 0.5*a*(t**2) + d0
 
         grav = self.grav
         mass = self.mass
