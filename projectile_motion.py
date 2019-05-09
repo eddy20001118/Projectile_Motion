@@ -514,7 +514,8 @@ def run_animation(cal_res):
     win = GraphWin("ProjectileSIm", width, height)
 
     # Create object
-    ball_object = Circle(Point(dx, dy), 10)
+    curve_point = Point(dx,dy)
+    ball_object = Circle(curve_point, 10)
     ball_object.setFill(color_rgb(255, 230, 204))
     ball_object.setOutline(color_rgb(215, 155, 0))
 
@@ -594,15 +595,17 @@ def run_animation(cal_res):
             new_object.setOutline(color_rgb(215, 155, 0))
             new_dis_msg = Text(
                 Point(dx, dy+20), "(%.2f,%.2f)" % (dis_x, dis_y))
-            curve_point = Point(dx, dy)
-
-            curve_point.draw(win)
+            new_curve_point = Point(dx, dy)
+            curve_line = Line(curve_point,new_curve_point)
+            
             new_object.draw(win)
             new_dis_msg.draw(win)
+            curve_line.draw(win)
 
             ball_object.undraw()
             dis_msg.undraw()
             ball_object = new_object
+            curve_point = new_curve_point
             dis_msg = new_dis_msg
 
             real_time_loop_counter = 0
