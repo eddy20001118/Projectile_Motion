@@ -5,6 +5,8 @@ import os
 import traceback
 import platform
 import math
+from graphic3D import animation_3d
+from algorithm import algo
 run_programme = True
 
 
@@ -16,7 +18,6 @@ except ModuleNotFoundError:
     print(traceback.format_exc())
     input("Press any key to continue")
     run_programme = False
-
 
 # Check platform
 sys_info = platform.system()
@@ -32,17 +33,18 @@ title = "DUISC Advanced Physics Project"
 author_copyright = "Yuhao Li 2019"
 name = "Projectile Motion Simulator"
 
-# System constants
-g_grav = 9.81  # gravitational acceleration
-
 # Default input parameters
-g_mass = float(1.0)  # mass (kg)
-g_ang = float(60.0)  # initial angel to the horizontal CCW (deg)
-g_height = float(20.0)
-g_vel = float(10.0)
-g_drag_coef = float(0.001)  # coefficient of drag force (5cm diameter sphere)
-g_time_step = float(0.02)  # time step size (s)
-g_total_time = float(5.0)  # total time for the simulation
+sys_params = {
+    "grav": float(9.81),
+    "mass": float(1.0),
+    "ang": float(60.0),
+    "vel": float(10.0),
+    "dis_x": float(0.0),
+    "dis_y": float(20.0),
+    "drag_coef": float(0.001),
+    "time_step": float(0.02),
+    "total_time": float(5.0)
+}
 
 
 def print_head_title():
@@ -68,21 +70,21 @@ def print_main_menu():
     print("+-------------------------------------------+\n")
 
 
-def print_param_menu():
+def print_param_menu(sys_params):
     # This function is to print the parameter menu in the console
 
-    global g_mass, g_ang, g_height, g_vel, g_drag_coef, g_time_step, g_total_time
     print_head_title()
     print("+----------------------------------------------------------+")
     print("|{:^58s}|".format("Parameters Info"))
     print("+----------------------------------------------------------+")
-    print("| 1. Mass: {:<47s} |".format(str(g_mass)+" (kg)"))
-    print("| 2. Angle: {:<46s} |".format(str(g_ang)+" (deg)"))
-    print("| 3. Height: {:<45s} |".format(str(g_height)+" (m)"))
-    print("| 4. Velocity: {:<43s} |".format(str(g_vel)+" (m/s)"))
-    print("| 5. Drag coef: {:<42s} |".format(str(g_drag_coef)))
-    print("| 6. Time step: {:<42s} |".format(str(g_time_step)+" (s)"))
-    print("| 7. Total time: {:<41s} |".format(str(g_total_time)+" (s)"))
+    print("| 1. Mass: {:<47s} |".format(str(sys_params["mass"])+" (kg)"))
+    print("| 2. Angle: {:<46s} |".format(str(sys_params["ang"])+" (deg)"))
+    print("| 3. Velocity: {:<43s} |".format(str(sys_params["vel"])+" (m/s)"))
+    print("| 4. Initial displacement x: {:<29s} |".format(str(sys_params["dis_x"])+" (m)"))
+    print("| 5. Initial displacement y: {:<29s} |".format(str(sys_params["dis_y"])+" (m)"))
+    print("| 6. Drag coef: {:<42s} |".format(str(sys_params["drag_coef"])))
+    print("| 7. Time step: {:<42s} |".format(str(sys_params["time_step"])+" (s)"))
+    print("| 8. Total time: {:<41s} |".format(str(sys_params["total_time"])+" (s)"))
     print("| Quit -- q {:<46s} |".format(""))
     print("+----------------------------------------------------------+\n")
 
@@ -102,7 +104,7 @@ def print_plot_menu():
     print("| {:<56s} |".format("6. Print displacement y"))
     print("| {:<56s} |".format("7. Print resultant displacement"))
     print("| {:<56s} |".format("8. Print angle"))
-    print("| {:<56s} |".format("9. Print four useful graphs"))
+    print("| {:<56s} |".format("9. Print four summative graphs"))
     print("| {:<56s} |".format("Quit -- q"))
     print("+----------------------------------------------------------+\n")
 
@@ -124,7 +126,7 @@ def print_res_table(cal_res):
     return list_len
 
 
-def set_param(hint, default, index):
+def set_param(hint, key, sys_params):
     # This function is for setting the parameters
     # inputs:	hint 	        (string)		        the hint for the input
     #           default 	    (float)		            default value
@@ -133,166 +135,48 @@ def set_param(hint, default, index):
     # outputs:  exit_code       (string)                exit code of the function
 
     res = float(0)
+    local_sys_params = sys_params
+    default = local_sys_params[key]
     exit_code = ""
     try:
         param_input = input(hint)
         if param_input is "q":
             exit_code = "interrupt"
-            return exit_code
+            return exit_code, local_sys_params
+
+        elif param_input is "":
+            local_sys_params[key] = default
+
         elif param_input is not "":
             res = float(param_input)
 
-            # for the 1st,6th,7th option, the input value cannot be zero
-            if (index is 1 or index is 6 or index is 7) and res == 0:
+            if (key == "mass" or key == "time_step" or key == "total_time") and res == 0:
                 raise ValueError()
-        else:
-            res = default
 
-        global g_mass, g_ang, g_height, g_vel, g_drag_coef, g_time_step, g_total_time
-
-        if index is 1:
-            g_mass = res
-        elif index is 2:
-            if g_vel == 0:
+            if local_sys_params["ang"] != 0 and local_sys_params["vel"] == 0:
                 print(
                     "\nWarning: Velocity is set to 0, angle in any value would not take effect\n")
                 input("Press any key to continue")
-            g_ang = res
-        elif index is 3:
-            g_height = res
-        elif index is 4:
-            if g_ang != 0 and res == 0:
-                print(
-                    "\nWarning: Velocity is set to 0, angle in any value would not take effect\n")
-                input("Press any key to continue")
-            g_vel = res
-        elif index is 5:
-            g_drag_coef = res
-        elif index is 6:
-            g_time_step = res
-        elif index is 7:
-            g_total_time = res
-        else:
-            res = default
+
+            local_sys_params[key] = res
 
         # Refresh the parameter menu every time when a parameter is set.
-        print_param_menu()
+        print_param_menu(sys_params)
         exit_code = "normal-quit"
-        return exit_code
+        return exit_code, local_sys_params
 
-    except ValueError as v:
+    except ValueError:
         print("Invaild input, try again")
         time.sleep(1)
         os.system(sys_clear)
-        print_param_menu()
-
+        print_param_menu(sys_params)
         # Internal call for inputting one more time
-        set_param(hint, default, index)
+        set_param(hint, key, sys_params)
 
 
-def execute(mass, ang, vel, height, drag_coef, time_step, total_time):
-    # This function is for the main calculation
-    # inputs:	mass 	        (float)		        Mass
-    #           ang 	        (float)		        Angle for the ejection
-    #           vel             (float)             Velocity
-    #           height          (float)             Initial height
-    #           drag_coef       (float)             Drag coefficient
-    #           time_step       (float)             Time step
-    #           total_time      (float)             Total time for the simulation
-    #
-    # outputs:  cal_res         (Object)            The key-value set that holds all the result lists
-
-    init_ang = 0 if vel == 0 else ang
-    # Resolving velocity vector
-    vel_x = math.cos(math.radians(ang)) * vel
-    vel_y = math.sin(math.radians(ang)) * vel
-
-    # Initialise result-lists
-    accel_x_arr = []
-    accel_y_arr = []
-    vel_y_arr = []
-    vel_x_arr = []
-    dis_y_arr = []
-    dis_x_arr = []
-    ang_arr = []
-    time_arr = []
-
-    # Append starting point
-    accel_y_arr.append(float("%.4f" % -g_grav))
-    accel_x_arr.append(float("%.4f" % 0.0))
-    vel_y_arr.append(float("%.4f" % vel_y))
-    vel_x_arr.append(float("%.4f" % vel_x))
-    dis_y_arr.append(float("%.4f" % height))
-    dis_x_arr.append(float("%.4f" % 0.0))
-    ang_arr.append(float("%.4f" % init_ang))
-    time_arr.append(float("%.2f" % 0.02))
-
-    # Initial loop variables
-    contact_time = "Not contact"
-    time = float(0.0)
-    index = int(0)
-
-    while time < total_time:
-        # Instant variables
-        drag_accel_y = -(
-            vel_y_arr[index] * math.fabs(vel_y_arr[index]) * drag_coef) / mass
-        drag_accel_x = -(
-            vel_x_arr[index] * math.fabs(vel_x_arr[index]) * drag_coef) / mass
-
-        accel_y = - g_grav + drag_accel_y
-        accel_x = drag_accel_x
-
-        # variables for step i+1
-        vel_y = vel_y_arr[index] + (accel_y * time_step)
-        vel_x = vel_x_arr[index] + (accel_x * time_step)
-        dis_y = dis_y_arr[index] + (vel_y * time_step)
-        dis_x = dis_x_arr[index] + (vel_x * time_step)
-        ang = 0.0
-        if -0.00001 < vel_x < 0.00001:
-            ang = math.copysign(90, vel_y)
-        else:
-            ang = math.degrees(math.atan(vel_y / vel_x))
-        time = time_arr[index] + time_step
-
-        if dis_y < 0 < dis_y_arr[index]:
-            contact_time = time
-
-        # append i+1 to lists
-        accel_y_arr.append(float("%.4f" % accel_y))
-        accel_x_arr.append(float("%.4f" % accel_x))
-        vel_y_arr.append(float("%.4f" % vel_y))
-        vel_x_arr.append(float("%.4f" % vel_x))
-        dis_y_arr.append(float("%.4f" % dis_y))
-        dis_x_arr.append(float("%.4f" % dis_x))
-        ang_arr.append(float("%.4f" % ang))
-        time_arr.append(float("%.2f" % time))
-
-        index += 1
-
-    # Summarise key information
-    max_height = max(dis_y_arr)
-    min_height = min(dis_y_arr)
-    max_dis_x = max(dis_x_arr)
-    min_dis_x = min(dis_x_arr)
-
-    cal_res = {
-        "accel_y_arr": accel_y_arr,
-        "accel_x_arr": accel_x_arr,
-        "vel_y_arr": vel_y_arr,
-        "vel_x_arr": vel_x_arr,
-        "dis_y_arr": dis_y_arr,
-        "dis_x_arr": dis_x_arr,
-        "ang_arr": ang_arr,
-        "time_arr": time_arr,
-        "max_height": max_height,
-        "min_height": min_height,
-        "max_dis_x": max_dis_x,
-        "min_dis_x": min_dis_x,
-        "contact_time": contact_time,
-        "time_step": time_step,
-        "is_calculated": True
-    }
-
+def accurate_calculation(sys_params):
+    algorithm = algo(sys_params)
+    cal_res = algorithm.execute()
     return cal_res
 
 
@@ -389,7 +273,7 @@ def plot_data(cal_res, index):
         y_data = cal_res["ang_arr"]
         plot_single_graph("Angle", "time (s)", "ang (deg)", x_data, y_data)
 
-        plt.subplots_adjust(wspace=0.37, hspace=0.27)
+        plt.subplots_adjust(wspace=0.5, hspace=0.5)
 
     plt.ion()
     plt.show()
@@ -407,8 +291,10 @@ def print_res(cal_res):
     min_height = cal_res["min_height"]
     max_dis_x = cal_res["max_dis_x"]
     min_dis_x = cal_res["min_dis_x"]
-    data_points = len(cal_res["time_arr"])
+    data_points = cal_res["length"]
     contact_time = cal_res["contact_time"]
+    if contact_time == -1:
+        contact_time = "Not contact"
 
     print("+----------------------------------------------------------+")
     print("|{:^58s}|".format("Summary"))
@@ -465,162 +351,10 @@ def save_to_csv(cal_res):
     input("Press any key to continue")
 
 
-def run_animation(cal_res):
-    # This function is for creating an animation GUI winodow for visualising the motion.
-    # inputs:	cal_res	    (dictionary)        a dictionary that hold the all the result lists
-    time_step = cal_res["time_step"]
-
-    # Delay constants
-    real_time_delay = 1
-    other_msg_delay = 10
-
-    # Loop counter for the delay
-    real_time_loop_counter = 0
-    other_msg_loop_counter = 0
-
-    # System variables
-    width = 800
-    height = 600
-
-    # Zero point
-    zero_x = 100
-    zero_y = height/2
-    zero_point = Point(zero_x, zero_y)
-
-    dis_x = cal_res["dis_x_arr"][0]
-    dis_y = cal_res["dis_y_arr"][0]
-
-    max_height = math.fabs(cal_res["max_height"])
-    min_height = math.fabs(cal_res["min_height"])
-    max_dis_x = math.fabs(cal_res["max_dis_x"])
-
-    denominter_y = max_height if max_height > min_height else min_height
-
-    x_scale_factor = float(0.0)
-    if max_dis_x < (width-200) / 10:
-        x_scale_factor = 4
-    elif max_dis_x > (width-200):
-        x_scale_factor = ((width - 200) / 2) / max_dis_x
-    else:
-        x_scale_factor = 1.0
-
-    y_scale_factor = ((height/2)-100) / denominter_y
-
-    # Initial object coordinate
-    dx = zero_x + (dis_x * x_scale_factor)
-    dy = zero_y - (dis_y * y_scale_factor)
-
-    # Create a window
-    win = GraphWin("ProjectileSIm", width, height)
-
-    # Create object
-    curve_point = Point(dx,dy)
-    ball_object = Circle(curve_point, 10)
-    ball_object.setFill(color_rgb(255, 230, 204))
-    ball_object.setOutline(color_rgb(215, 155, 0))
-
-    # Create axis
-    x_axis = Line(zero_point, Point(width-zero_x, zero_y))
-    y_axis = Line(Point(zero_x, 100), Point(zero_x, height-100))
-    x_interval_line = Line(Point(x_scale_factor*10+zero_x,
-                                 zero_y-10), Point(x_scale_factor*10+zero_x, zero_y))
-    y_interval_line = Line(Point(
-        zero_x+10, zero_y-y_scale_factor*10), Point(zero_x, zero_y-y_scale_factor*10))
-
-    # Initialise on-screen messages
-    title_msg = Text(Point(width/2, 60), name)
-    author_msg = Text(Point(width/2, 80), author_copyright)
-    press_continue_msg = Text(Point(width/2, 500), "Press any key to start!")
-    ang_msg = Text(Point(720, 60), "ang : 0 deg")
-    vel_msg = Text(Point(720, 80), "vel : 0 m/s")
-    accel_msg = Text(Point(720, 100), "accel : 0 m/s^2")
-    dis_msg = Text(Point(dx, dy+20), "(%.2f,%.2f)" % (dis_x, dis_y))
-    sim_time_msg = Text(Point(720, 140), "sim time : 0 s")
-    rt_time_msg = Text(Point(720, 160), "real time : 0 s")
-
-    # Set font size
-    title_msg.setSize(20)
-    author_msg.setSize(16)
-
-    # Draw elements
-    x_axis.draw(win)
-    y_axis.draw(win)
-    x_interval_line.draw(win)
-    y_interval_line.draw(win)
-    ball_object.draw(win)
-    title_msg.draw(win)
-    author_msg.draw(win)
-    press_continue_msg.draw(win)
-    ang_msg.draw(win)
-    vel_msg.draw(win)
-    accel_msg.draw(win)
-    dis_msg.draw(win)
-    sim_time_msg.draw(win)
-    rt_time_msg.draw(win)
-
-    win.getKey()    # Start after a key press
-    title_msg.undraw()
-    author_msg.undraw()
-    press_continue_msg.undraw()
-    t_start = time.time()
-    i = 0
-    check_key = ""
-
-    while(i < len(cal_res["time_arr"]) and check_key == ""):
-        check_key = win.checkKey()
-
-        if other_msg_loop_counter >= other_msg_delay:
-            ang = cal_res["ang_arr"][i]
-            accel_x = cal_res["accel_x_arr"][i]
-            accel_y = cal_res["accel_y_arr"][i]
-            vel_x = cal_res["vel_x_arr"][i]
-            vel_y = cal_res["vel_y_arr"][i]
-            vel_resultant = math.sqrt(vel_x*vel_x + vel_y*vel_y)
-            accel_resultant = math.sqrt(accel_x*accel_x+accel_y*accel_y)
-
-            ang_msg.setText("ang : %.4f deg" % ang)
-            vel_msg.setText("vel : %.4f m/s" % vel_resultant)
-            accel_msg.setText("accel : %.4f m/s^2" % accel_resultant)
-
-            other_msg_loop_counter = 0
-
-        if real_time_loop_counter >= real_time_delay:
-            dis_x = cal_res["dis_x_arr"][i]
-            dis_y = cal_res["dis_y_arr"][i]
-            dx = zero_x + (dis_x * x_scale_factor)
-            dy = zero_y - (dis_y * y_scale_factor)
-
-            new_object = Circle(Point(dx, dy), 10)
-            new_object.setFill(color_rgb(255, 230, 204))
-            new_object.setOutline(color_rgb(215, 155, 0))
-            new_dis_msg = Text(
-                Point(dx, dy+20), "(%.2f,%.2f)" % (dis_x, dis_y))
-            new_curve_point = Point(dx, dy)
-            curve_line = Line(curve_point,new_curve_point)
-            
-            new_object.draw(win)
-            new_dis_msg.draw(win)
-            curve_line.draw(win)
-
-            ball_object.undraw()
-            dis_msg.undraw()
-            ball_object = new_object
-            curve_point = new_curve_point
-            dis_msg = new_dis_msg
-
-            real_time_loop_counter = 0
-
-        t_now = time.time() - t_start
-        sim_time_msg.setText("sim time : %f s" % cal_res["time_arr"][i])
-        rt_time_msg.setText("real time : %f s" % t_now)
-
-        if t_now > cal_res["time_arr"][i]:
-            rt_time_msg.setTextColor("red")
-
-        real_time_loop_counter += 1
-        other_msg_loop_counter += 1
-        time.sleep(time_step)
-        i += 1
+def run_animation3D(cal_res):
+    # animation_3d.clear_screen()
+    test = animation_3d(cal_res)
+    test.run_animation()
 
 
 def main():
@@ -636,23 +370,23 @@ def main():
             input_options = input("Options: ")
 
             if input_options is "1":
-                params_prompt_list = ["Mass", "Angle", "Height",
-                                      "Velocity", "Drag coef", "Time step", "Total time"]
-                params_list = [g_mass, g_ang, g_height, g_vel,
-                               g_drag_coef, g_time_step, g_total_time]
+                params_prompt_list = ["Mass", "Angle", "Velocity", "Initial displacement x",
+                                      "Initial displacement y", "Drag coef", "Time step", "Total time"]
+                params_key_list = ["mass", "ang", "vel", "dis_x",
+                                   "dis_y", "drag_coef", "time_step", "total_time"]
                 exit_code = ""
                 i = 0
-                print_param_menu()
-                while i < len(params_list) and exit_code is not "interrupt":
+                print_param_menu(sys_params)
+                while i < len(params_key_list) and exit_code is not "interrupt":
                     prompt = "Option[{:d}] - {:s}: ".format(
                         i+1, params_prompt_list[i])
-                    exit_code = set_param(prompt, params_list[i], i+1)
+                    exit_code = set_param(
+                        prompt, params_key_list[i], sys_params)
                     i += 1
                 cal_res["is_calculated"] = False
 
             elif input_options is "2":
-                cal_res = execute(g_mass, g_ang, g_vel, g_height,
-                                  g_drag_coef, g_time_step, g_total_time)
+                cal_res = accurate_calculation(sys_params)
                 print_res(cal_res)
 
             elif input_options is "3":
@@ -690,7 +424,7 @@ def main():
                 if not cal_res["is_calculated"]:
                     raise CalculationError()
                 else:
-                    run_animation(cal_res)
+                    run_animation3D(cal_res)
 
             elif input_options is "q":
                 pass
