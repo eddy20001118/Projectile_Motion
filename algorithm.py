@@ -72,7 +72,7 @@ class algo:
             current_time = time_arr[i]
 
             drag_a_x = -(vel_x * np.abs(vel_x) * drag_coef) / mass
-            drag_a_y = -(vel_x * np.abs(vel_x) * drag_coef) / mass
+            drag_a_y = -(vel_y * np.abs(vel_y) * drag_coef) / mass
 
             accel_x = drag_a_x
             accel_y = - grav + drag_a_y
