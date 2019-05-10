@@ -29,8 +29,8 @@ class algo:
         self.total_time = sys_params['total_time']
 
     def execute(self):
-        f_v = lambda self,t,a,v0: v0 + a*t
-        f_d = lambda self,t,a,v0,d0: v0 * t + 0.5*a*(t**2) + d0
+        f_v = lambda t,a,v0: v0 + a*t
+        f_d = lambda t,a,v0,d0: v0 * t + 0.5*a*(t**2) + d0
 
         grav = self.grav
         mass = self.mass

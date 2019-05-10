@@ -359,6 +359,7 @@ def run_animation3D(cal_res):
 
 def main():
     input_options = ""  # Input option variable
+    local_sys_params = sys_params
     cal_res = {  # Output result variable
         "is_calculated": False
     }
@@ -376,17 +377,17 @@ def main():
                                    "dis_y", "drag_coef", "time_step", "total_time"]
                 exit_code = ""
                 i = 0
-                print_param_menu(sys_params)
+                print_param_menu(local_sys_params)
                 while i < len(params_key_list) and exit_code is not "interrupt":
                     prompt = "Option[{:d}] - {:s}: ".format(
                         i+1, params_prompt_list[i])
-                    exit_code = set_param(
-                        prompt, params_key_list[i], sys_params)
+                    exit_code,local_sys_params = set_param(
+                        prompt, params_key_list[i], local_sys_params)
                     i += 1
                 cal_res["is_calculated"] = False
 
             elif input_options is "2":
-                cal_res = accurate_calculation(sys_params)
+                cal_res = accurate_calculation(local_sys_params)
                 print_res(cal_res)
 
             elif input_options is "3":
