@@ -13,7 +13,6 @@ run_programme = True
 try:
     import matplotlib.pyplot as plt
     from prettytable import PrettyTable
-    from graphics import *
 except ModuleNotFoundError:
     print(traceback.format_exc())
     input("Press any key to continue")
