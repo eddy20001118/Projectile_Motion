@@ -1,6 +1,6 @@
 import numpy as np
 
-class algo:
+class algorithm:
     grav = float(0.0)
     mass = float(0.0)
     ang = float(0.0)
@@ -112,14 +112,14 @@ class algo:
         length = time_arr.size
 
         cal_res = {
-            "accel_y_arr": list(accel_y_arr),
-            "accel_x_arr": list(accel_x_arr),
-            "vel_y_arr": list(vel_y_arr),
-            "vel_x_arr": list(vel_x_arr),
-            "dis_y_arr": list(dis_y_arr),
-            "dis_x_arr": list(dis_x_arr),
-            "ang_arr": list(ang_arr),
-            "time_arr": list(time_arr),
+            "accel_y_arr": accel_y_arr,
+            "accel_x_arr": accel_x_arr,
+            "vel_y_arr": vel_y_arr,
+            "vel_x_arr": vel_x_arr,
+            "dis_y_arr": dis_y_arr,
+            "dis_x_arr": dis_x_arr,
+            "ang_arr": ang_arr,
+            "time_arr": time_arr,
             "length": length,
             "max_height": max_height,
             "min_height": min_height,
@@ -143,7 +143,7 @@ def main():
         "time_step" : 0.001,
         "total_time" : 5
     }
-    al = algo(input_params)
+    al = algorithm(input_params)
     cal_res = al.execute()
 
 if __name__ == "__main__":
