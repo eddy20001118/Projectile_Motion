@@ -119,7 +119,7 @@ def case_2_options():
     print("2. View summary")
     print("Quit -- q\n")
 
-def case_4or5_options():
+def case_4():
     print("Quit -- q\n")
 
 def object_has_result():
@@ -139,8 +139,9 @@ def case_1():
 
         try:
             if user_option is "1":
-                object_name = input("Object name: ")
-                projectile_object(object_name)
+                object_names = input("Object name: ").split(",")
+                for name in object_names:
+                    projectile_object(name)
 
             elif user_option is "2":
                 object_index = int(input("Object index: ")) - 1
@@ -203,12 +204,12 @@ def case_3():
 
 def case_4():
     if object_has_result():
-        print_object_menu(case_4or5_options)
+        print_object_menu(case_4)
         user_option = ""
 
         while user_option is not "q":
             try:
-                print_object_menu(case_4or5_options)
+                print_object_menu(case_4)
                 user_option = input("Object index: ")
                 if user_option is not "q":
                     ob = projectile_object.object_list[int(user_option)-1]
@@ -221,17 +222,11 @@ def case_4():
 
 def case_5():
     if object_has_result():
-        print_object_menu(case_4or5_options)
-        user_option = ""
-
-        while user_option is not "q":
-            try:
-                print_object_menu(case_4or5_options)
-                user_option = int(input("Object index: ")) - 1
-                ob = projectile_object.object_list[user_option]
-                ob.run_animation()
-            except:
-                print(traceback.print_exc())
+        try:
+            projectile_object.run_animation()
+        except:
+            print(traceback.format_exc())
+            input()
     else:
         input("No available result to save, press any key to continue")
 
@@ -259,6 +254,9 @@ def main():
             elif input_options is "5":
                 case_5()
 
+            elif input_options is "q":
+                print("Exit the programme...")
+
         except ValueError:
             print(traceback.format_exc())
             input("Invaild input, press any key to continue")
@@ -269,7 +267,7 @@ def main():
         except Exception:
             print(traceback.format_exc())
             input("\n Press any key to continue")
-        print("Exit the programme...")
+
 
 
 class CalculationError(Exception):

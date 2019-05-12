@@ -1,6 +1,7 @@
 from algorithm import algorithm
 from graphic3D import animation_3d
 from prettytable import PrettyTable
+from vpython import *
 
 import matplotlib.pyplot as plt
 import os
@@ -41,10 +42,10 @@ class projectile_object:
             "ang": float(60.0),
             "vel": float(10.0),
             "dis_x": float(0.0),
-            "dis_y": float(20.0),
-            "drag_coef": float(0.001),
+            "dis_y": float(30.0),
+            "drag_coef": float(0.0),
             "time_step": float(0.02),
-            "total_time": float(5.0)
+            "total_time": float(3.0)
         }
         self.sys_params = sys_params
         self.add_to_list(self)
@@ -202,9 +203,17 @@ class projectile_object:
             f.close()
             input("Saving complete, press any key to continue")
 
-    def run_animation(self):
-        animation = animation_3d(self.cal_res)
-        animation.run_animation()
+    @classmethod
+    def run_animation(cls):
+        for ob in cls.object_list:
+            cal_res = ob.cal_res
+            ob.animation = animation_3d(cal_res)
+        
+        for ob in cls.object_list:
+            ob.animation.run_animation()
+
+        animation_3d.exit_animation()
+
 
     @classmethod
     def plot_single_graph(cls, title, x_label, y_label, x_key, y_key):
