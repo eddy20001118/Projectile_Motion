@@ -21,6 +21,7 @@ class projectile_object:
 
     name = ""
     file_save_path = "./results/"
+    is_saved = False
 
     @classmethod
     def add_to_list(cls, this):
@@ -43,7 +44,7 @@ class projectile_object:
             "vel": float(10.0),
             "dis_x": float(0.0),
             "dis_y": float(30.0),
-            "drag_coef": float(0.0),
+            "drag_coef": float(0.0025),
             "time_step": float(0.02),
             "total_time": float(3.0)
         }
@@ -161,47 +162,48 @@ class projectile_object:
         print("+----------------------------------------------------------+\n")
         input("Press any key to continue")
 
-    def save_to_csv(self, path, name):
+    def save_to_csv(self):
         user_option = ""
-        full_path = path + name + ".csv"
+        full_path = self.file_save_path + self.name + ".csv"
+        if self.cal_res["is_calculated"]:
+            if not os.path.isdir(self.file_save_path):
+                os.makedirs(self.file_save_path)
+                
+            if os.path.isfile(full_path):
+                user_option = input("{:s}.csv already exists, do you wish to overwrite it ? [Y/N]: ".format(self.name))
 
-        if not os.path.isdir(path):
-            os.makedirs(path)
-            
-        if os.path.isfile(full_path):
-            user_option = input("File already exists, do you wish to overwrite it ? [Y/N]: ")
+            if (user_option == "y" or user_option == "Y") or not os.path.isfile(full_path):
+                cal_res = self.cal_res
+                # open a file with "write" mode
+                f = open(full_path, "w")
 
-        if (user_option == "y" or user_option == "Y") or not os.path.isfile(full_path):
-            cal_res = self.cal_res
-            # open a file with "write" mode
-            f = open(full_path, "w")
+                # write the head
+                f.write("time,accel_x,accel_y,vel_x,vel_y,dis_x,dis_y,ang\n")
 
-            # write the head
-            f.write("time,accel_x,accel_y,vel_x,vel_y,dis_x,dis_y,ang\n")
+                # unpack the result package
+                time_arr = cal_res["time_arr"]
+                accel_x_arr = cal_res["accel_x_arr"]
+                accel_y_arr = cal_res["accel_y_arr"]
+                vel_x_arr = cal_res["vel_x_arr"]
+                vel_y_arr = cal_res["vel_y_arr"]
+                dis_x_arr = cal_res["dis_x_arr"]
+                dis_y_arr = cal_res["dis_y_arr"]
+                ang_arr = cal_res["ang_arr"]
 
-            # unpack the result package
-            time_arr = cal_res["time_arr"]
-            accel_x_arr = cal_res["accel_x_arr"]
-            accel_y_arr = cal_res["accel_y_arr"]
-            vel_x_arr = cal_res["vel_x_arr"]
-            vel_y_arr = cal_res["vel_y_arr"]
-            dis_x_arr = cal_res["dis_x_arr"]
-            dis_y_arr = cal_res["dis_y_arr"]
-            ang_arr = cal_res["ang_arr"]
+                i = 0
 
-            i = 0
+                # write all results
+                while i < len(time_arr):
+                    csv_format = "{:.2f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}\n"
+                    next_line = csv_format.format(time_arr[i], accel_x_arr[i], accel_y_arr[i],
+                                                vel_x_arr[i], vel_y_arr[i], dis_x_arr[i], dis_y_arr[i], ang_arr[i])
+                    f.write(next_line)
+                    i += 1
 
-            # write all results
-            while i < len(time_arr):
-                csv_format = "{:.2f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}\n"
-                next_line = csv_format.format(time_arr[i], accel_x_arr[i], accel_y_arr[i],
-                                            vel_x_arr[i], vel_y_arr[i], dis_x_arr[i], dis_y_arr[i], ang_arr[i])
-                f.write(next_line)
-                i += 1
-
-            # close the file after finished
-            f.close()
-            input("Saving complete, press any key to continue")
+                # close the file after finished
+                f.close()
+                self.is_saved = True
+                input("Saving complete, press any key to continue")
 
     @classmethod
     def run_animation(cls):

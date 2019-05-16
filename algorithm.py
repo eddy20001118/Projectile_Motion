@@ -10,12 +10,6 @@ class algorithm:
     drag_coef = float(0.0)
     time_step = float(0.0)
     total_time = float(0.0)
-    
-    def get_angle(self,x,y):
-        if x == 0:
-            return np.copysign(90, y)
-        else:
-            return np.degrees(np.arctan(y/x))
 
     def __init__(self, sys_params):
         self.grav = sys_params['grav']
@@ -29,9 +23,6 @@ class algorithm:
         self.total_time = sys_params['total_time']
 
     def execute(self):
-        f_v = lambda t,a,v0: v0 + a*t
-        f_d = lambda t,a,v0,d0: v0 * t + 0.5*a*(t**2) + d0
-
         grav = self.grav
         mass = self.mass
         drag_coef = self.drag_coef
@@ -39,14 +30,16 @@ class algorithm:
         total_time = self.total_time
         time_arr = np.arange(0,total_time,time_step)
         arr_length = time_arr.size
+        f_drag = lambda vel : -((vel * np.abs(vel) * drag_coef) / mass)
+        f_ang = lambda x,y : np.degrees(np.arctan(y/x)) if x != 0 else np.copysign(90, y)
 
         ang = self.ang
         accel_x = 0
         accel_y = -grav
-        vel_x = init_vel_x = np.around( np.cos(np.radians(ang)) * self.vel, decimals=4)
-        vel_y = init_vel_y = np.around( np.sin(np.radians(ang)) * self.vel, decimals=4)
-        dis_x = init_dis_x = self.dis_x
-        dis_y = init_dis_y = self.dis_y
+        vel_x = np.around( np.cos(np.radians(ang)) * self.vel, decimals=4)
+        vel_y = np.around( np.sin(np.radians(ang)) * self.vel, decimals=4)
+        dis_x = self.dis_x
+        dis_y = self.dis_y
 
         accel_x_arr = np.zeros(arr_length)
         accel_y_arr = np.zeros(arr_length)
@@ -71,16 +64,17 @@ class algorithm:
         while i < arr_length:
             current_time = time_arr[i]
 
-            drag_a_x = -(vel_x * np.abs(vel_x) * drag_coef) / mass
-            drag_a_y = -(vel_y * np.abs(vel_y) * drag_coef) / mass
+            drag_a_x = f_drag(vel_x)
+            drag_a_y = f_drag(vel_y)
 
-            accel_x = np.around(drag_a_x, decimals=4)
-            accel_y = np.around(- grav + drag_a_y, decimals=4)
-            vel_x = np.around(f_v(current_time,accel_x,init_vel_x), decimals=4)
-            vel_y = np.around(f_v(current_time,accel_y,init_vel_y), decimals=4)
-            dis_x = np.around(f_d(current_time,accel_x,init_vel_x,init_dis_x), decimals=4)
-            dis_y = np.around(f_d(current_time,accel_y,init_vel_y,init_dis_y), decimals=4)
-            ang = np.around(self.get_angle(vel_x,vel_y), decimals=4)
+            accel_x = drag_a_x
+            accel_y = - grav + drag_a_y
+
+            vel_x += time_step * accel_x
+            vel_y += time_step * accel_y
+            dis_x += time_step * vel_x
+            dis_y += time_step * vel_y
+            ang = f_ang(vel_x,vel_y)
 
             if dis_y_arr[i-1] > 0 and dis_y < 0:
                 contact_time = current_time
@@ -102,14 +96,14 @@ class algorithm:
         min_dis_x = np.min(dis_x_arr)
 
         cal_res = {
-            "accel_y_arr": accel_y_arr,
-            "accel_x_arr": accel_x_arr,
-            "vel_y_arr": vel_y_arr,
-            "vel_x_arr": vel_x_arr,
-            "dis_y_arr": dis_y_arr,
-            "dis_x_arr": dis_x_arr,
-            "ang_arr": ang_arr,
-            "time_arr": time_arr,
+            "accel_y_arr": np.around(accel_y_arr, decimals=4),
+            "accel_x_arr": np.around(accel_x_arr, decimals=4),
+            "vel_y_arr": np.around(vel_y_arr, decimals=4),
+            "vel_x_arr": np.around(vel_x_arr, decimals=4),
+            "dis_y_arr": np.around(dis_y_arr, decimals=4),
+            "dis_x_arr": np.around(dis_x_arr, decimals=4),
+            "ang_arr": np.around(ang_arr, decimals=4),
+            "time_arr": np.around(time_arr, decimals=2),
             "length": arr_length,
             "max_height": max_height,
             "min_height": min_height,
@@ -120,21 +114,3 @@ class algorithm:
             "is_calculated": True
         }
         return cal_res
-
-def main():
-    input_params = {
-        "grav" : 9.81,
-        "mass" : 1,
-        "ang" : 60,
-        "vel" : 10,
-        "dis_x" : 0,
-        "dis_y" : 20,
-        "drag_coef" : 0.0,
-        "time_step" : 0.001,
-        "total_time" : 5
-    }
-    al = algorithm(input_params)
-    cal_res = al.execute()
-
-if __name__ == "__main__":
-    main()

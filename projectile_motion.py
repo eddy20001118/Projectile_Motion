@@ -156,8 +156,7 @@ def case_1():
             elif user_option is "4":
                 projectile_object.remove_all()
         except:
-            print(traceback.format_exc())
-            input()
+            pass
 
 def case_2():
     print_object_menu(case_2_options)
@@ -186,7 +185,7 @@ def case_2():
                     print_head_menu()
                     ob.print_summary()
             except:
-                print(traceback.print_exc())
+                pass
     else:
         input("No available result to plot, press any key to continue")
 
@@ -204,19 +203,8 @@ def case_3():
 
 def case_4():
     if object_has_result():
-        print_object_menu(case_4)
-        user_option = ""
-
-        while user_option is not "q":
-            try:
-                print_object_menu(case_4)
-                user_option = input("Object index: ")
-                if user_option is not "q":
-                    ob = projectile_object.object_list[int(user_option)-1]
-                    ob.save_to_csv(ob.file_save_path, ob.name)
-            except:
-                print(traceback.print_exc())
-                input()
+        for ob in projectile_object.object_list:
+            ob.save_to_csv()
     else:
         input("No available result to save, press any key to continue")
 
@@ -225,8 +213,7 @@ def case_5():
         try:
             projectile_object.run_animation()
         except:
-            print(traceback.format_exc())
-            input()
+            pass
     else:
         input("No available result to save, press any key to continue")
 
