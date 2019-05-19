@@ -10,18 +10,20 @@ class animation_3d:
         if cls.color_count < 3:
             cls.color_count += 1
         else:
-            cls.color_count = 0
+            cls.color_count = 1
         cls.total_count += 1
 
     @classmethod
     def create_scene(cls):
-        cls.scene = canvas(width=1440,height=900)
+        cls.scene = canvas(width=1440,height=900,background=color.white)
 
     @classmethod
     def exit_animation(cls):
         if cls.scene.waitfor("keydown"):
             cls.scene.delete()
             cls.scene = None
+            cls.total_count = 0
+            cls.color_count = 0
 
     def __init__(self, cal_res):
         if self.scene is None:
@@ -34,6 +36,7 @@ class animation_3d:
         
         self.ground = box(pos=vector(0,0,0), size=vector(20,0.1,8), color=color.green)
         self.ball = sphere(pos=vector(init_dis_x,init_dis_y,self.total_count - 1), radius=0.2, color=self.color_list[self.color_count - 1], make_trail=True)
+        print(self.color_count)
 
     def run_animation(self):
         delay_rate = 1 / self.cal_res['time_step']

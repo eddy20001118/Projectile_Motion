@@ -11,13 +11,9 @@ import time
 class projectile_object:
     object_list = []
     params_prompt_list = ["Mass", "Angle", "Velocity", "Initial displacement x",
-                            "Initial displacement y", "Drag coef", "Time step", "Total time"]
+                          "Initial displacement y", "Drag coef", "Time step", "Total time"]
     params_key_list = ["mass", "ang", "vel", "dis_x",
-                        "dis_y", "drag_coef", "time_step", "total_time"]
-
-    cal_res = {  # Output result variable
-        "is_calculated": False
-    }
+                       "dis_y", "drag_coef", "time_step", "total_time"]
 
     name = ""
     file_save_path = "./results/"
@@ -35,9 +31,9 @@ class projectile_object:
     def remove_all(cls):
         cls.object_list = []
 
-    def __init__(self, name):
+    def __init__(self, name, head_menu_callback):
         self.name = name
-        sys_params = {
+        self.sys_params = {
             "grav": float(9.81),
             "mass": float(1.0),
             "ang": float(60.0),
@@ -48,19 +44,39 @@ class projectile_object:
             "time_step": float(0.02),
             "total_time": float(3.0)
         }
-        self.sys_params = sys_params
+        self.cal_res = {  # Output result variable
+            "is_calculated": False
+        }
         self.add_to_list(self)
+        self.print_head_menu = head_menu_callback
 
     def __repr__(self):
         return "{:s} : {:s}".format("Object", self.name)
 
-    def set_single_param(self,prompt,key,refresh_menu_callback):
+    def print_param_menu(self):
+    # This function is to print the parameter menu in the console
+        self.print_head_menu()
+        print("+----------------------------------------------------------+")
+        print("|{:^58s}|".format("Parameters Info"))
+        print("+----------------------------------------------------------+")
+        print("| 1. Mass: {:<47s} |".format(str(self.sys_params["mass"])+" (kg)"))
+        print("| 2. Angle: {:<46s} |".format(str(self.sys_params["ang"])+" (deg)"))
+        print("| 3. Velocity: {:<43s} |".format(str(self.sys_params["vel"])+" (m/s)"))
+        print("| 4. Initial displacement x: {:<29s} |".format(str(self.sys_params["dis_x"])+" (m)"))
+        print("| 5. Initial displacement y: {:<29s} |".format(str(self.sys_params["dis_y"])+" (m)"))
+        print("| 6. Drag coef: {:<42s} |".format(str(self.sys_params["drag_coef"])))
+        print("| 7. Time step: {:<42s} |".format(str(self.sys_params["time_step"])+" (s)"))
+        print("| 8. Total time: {:<41s} |".format(str(self.sys_params["total_time"])+" (s)"))
+        print("| Quit -- q {:<46s} |".format(""))
+        print("+----------------------------------------------------------+\n")
+
+    def set_single_param(self, prompt, key):
         # This function is for setting the parameters
-    # inputs:	hint 	        (string)		        the hint for the input
-    #           default 	    (float)		            default value
-    #           index           (int)                   index of options
-    #
-    # outputs:  exit_code       (string)                exit code of the function
+        # inputs:	hint 	        (string)		        the hint for the input
+        #           default 	    (float)		            default value
+        #           index           (int)                   index of options
+        #
+        # outputs:  exit_code       (string)                exit code of the function
 
         res = float(0)
         sys_params = self.sys_params
@@ -83,32 +99,34 @@ class projectile_object:
 
                 if sys_params["ang"] != 0 and sys_params["vel"] == 0:
                     print(
-                        "\nWarning: Velocity is set to 0, angle in any value would not take effect\n")
+                        "\nWarning: Velocity is set to 0, angle in any value would not take effects\n")
                     input("Press any key to continue")
 
                 sys_params[key] = res
                 self.cal_res["is_calculated"] = False
 
             # Refresh the parameter menu every time when a parameter is set.
-            refresh_menu_callback(sys_params)
             self.sys_params = sys_params
+            self.print_param_menu()
             return "normal-quit"
 
         except ValueError:
-            print("Invaild input, try again")
+            print("Invalid input, try again")
             time.sleep(1)
-            refresh_menu_callback(sys_params)
+            self.print_param_menu(sys_params)
             # Internal call for inputting one more time
-            self.set_single_param(prompt, key, refresh_menu_callback)
+            self.set_single_param(prompt, key)
 
-    def set_params(self, refresh_menu_callback):
+    def set_params(self):
         exit_code = ""
         i = 0
-        refresh_menu_callback(self.sys_params)
+        self.print_param_menu()
 
         while i < len(self.params_key_list) and exit_code is not "interrupt":
-            prompt = "Option[{:d}] - {:s}: ".format(i+1, self.params_prompt_list[i])
-            exit_code = self.set_single_param(prompt, self.params_key_list[i], refresh_menu_callback)
+            prompt = "Option[{:d}] - {:s}: ".format(
+                i+1, self.params_prompt_list[i])
+            exit_code = self.set_single_param(
+                prompt, self.params_key_list[i])
             i += 1
 
     def calculate(self):
@@ -147,7 +165,7 @@ class projectile_object:
         contact_time = cal_res["contact_time"]
         if contact_time == -1:
             contact_time = "Not contact"
-        
+
         print("+----------------------------------------------------------+")
         print("|{:^58s}|".format("Summary of object "+self.name))
         print("+----------------------------------------------------------+")
@@ -168,9 +186,10 @@ class projectile_object:
         if self.cal_res["is_calculated"]:
             if not os.path.isdir(self.file_save_path):
                 os.makedirs(self.file_save_path)
-                
+
             if os.path.isfile(full_path):
-                user_option = input("{:s}.csv already exists, do you wish to overwrite it ? [Y/N]: ".format(self.name))
+                user_option = input(
+                    "{:s}.csv already exists, do you wish to overwrite it ? [Y/N]: ".format(self.name))
 
             if (user_option == "y" or user_option == "Y") or not os.path.isfile(full_path):
                 cal_res = self.cal_res
@@ -196,26 +215,24 @@ class projectile_object:
                 while i < len(time_arr):
                     csv_format = "{:.2f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}\n"
                     next_line = csv_format.format(time_arr[i], accel_x_arr[i], accel_y_arr[i],
-                                                vel_x_arr[i], vel_y_arr[i], dis_x_arr[i], dis_y_arr[i], ang_arr[i])
+                                                  vel_x_arr[i], vel_y_arr[i], dis_x_arr[i], dis_y_arr[i], ang_arr[i])
                     f.write(next_line)
                     i += 1
 
                 # close the file after finished
                 f.close()
                 self.is_saved = True
-                input("Saving complete, press any key to continue")
 
     @classmethod
     def run_animation(cls):
         for ob in cls.object_list:
             cal_res = ob.cal_res
             ob.animation = animation_3d(cal_res)
-        
+
         for ob in cls.object_list:
             ob.animation.run_animation()
 
         animation_3d.exit_animation()
-
 
     @classmethod
     def plot_single_graph(cls, title, x_label, y_label, x_key, y_key):

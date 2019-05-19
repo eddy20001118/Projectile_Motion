@@ -38,7 +38,6 @@ def print_head_menu():
 
 def print_main_menu():
     # This function is to print the main menu in the console
-
     print_head_menu()
     print("+-------------------------------------------+")
     print("|{:^43s}|".format("Main menu"))
@@ -69,25 +68,6 @@ def print_object_menu(option_list_callback):
     print("+-------------------------------------------------------------+\n")
     option_list_callback()
 
-def print_param_menu(sys_params):
-    # This function is to print the parameter menu in the console
-
-    print_head_menu()
-    print("+----------------------------------------------------------+")
-    print("|{:^58s}|".format("Parameters Info"))
-    print("+----------------------------------------------------------+")
-    print("| 1. Mass: {:<47s} |".format(str(sys_params["mass"])+" (kg)"))
-    print("| 2. Angle: {:<46s} |".format(str(sys_params["ang"])+" (deg)"))
-    print("| 3. Velocity: {:<43s} |".format(str(sys_params["vel"])+" (m/s)"))
-    print("| 4. Initial displacement x: {:<29s} |".format(str(sys_params["dis_x"])+" (m)"))
-    print("| 5. Initial displacement y: {:<29s} |".format(str(sys_params["dis_y"])+" (m)"))
-    print("| 6. Drag coef: {:<42s} |".format(str(sys_params["drag_coef"])))
-    print("| 7. Time step: {:<42s} |".format(str(sys_params["time_step"])+" (s)"))
-    print("| 8. Total time: {:<41s} |".format(str(sys_params["total_time"])+" (s)"))
-    print("| Quit -- q {:<46s} |".format(""))
-    print("+----------------------------------------------------------+\n")
-
-
 def print_plot_menu():
     # This function is to print ploting option menu in the console
 
@@ -108,7 +88,7 @@ def print_plot_menu():
     print("+----------------------------------------------------------+\n")
 
 def case_1_options():
-    print("1. Add an object")
+    print("1. Add objects")
     print("2. Edit parameters")
     print("3. Delete an object")
     print("4. Delete all objects")
@@ -141,12 +121,12 @@ def case_1():
             if user_option is "1":
                 object_names = input("Object name: ").split(",")
                 for name in object_names:
-                    projectile_object(name)
+                    projectile_object(name, print_head_menu)
 
             elif user_option is "2":
                 object_index = int(input("Object index: ")) - 1
                 ob = projectile_object.object_list[object_index]
-                ob.set_params(print_param_menu)
+                ob.set_params()
             
             elif user_option is "3":
                 object_index = int(input("Object index: ")) - 1
@@ -156,7 +136,8 @@ def case_1():
             elif user_option is "4":
                 projectile_object.remove_all()
         except:
-            pass
+            print(traceback.format_exc())
+            input()
 
 def case_2():
     print_object_menu(case_2_options)
@@ -205,6 +186,7 @@ def case_4():
     if object_has_result():
         for ob in projectile_object.object_list:
             ob.save_to_csv()
+        input("Saving complete, press any key to continue")
     else:
         input("No available result to save, press any key to continue")
 
@@ -246,21 +228,11 @@ def main():
 
         except ValueError:
             print(traceback.format_exc())
-            input("Invaild input, press any key to continue")
-
-        except CalculationError:
-            input("Calculate first, press any key to continue")
+            input("Invalid input, press any key to continue")
 
         except Exception:
             print(traceback.format_exc())
             input("\n Press any key to continue")
-
-
-
-class CalculationError(Exception):
-    # Author-defined exception class
-    pass
-
 
 if __name__ == "__main__" and run_programme:
     main()

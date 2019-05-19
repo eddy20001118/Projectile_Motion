@@ -1,16 +1,6 @@
 import numpy as np
 
 class algorithm:
-    grav = float(0.0)
-    mass = float(0.0)
-    ang = float(0.0)
-    vel = float(0.0)
-    dis_x = float(0.0)
-    dis_y = float(0.0)
-    drag_coef = float(0.0)
-    time_step = float(0.0)
-    total_time = float(0.0)
-
     def __init__(self, sys_params):
         self.grav = sys_params['grav']
         self.mass = sys_params['mass']
