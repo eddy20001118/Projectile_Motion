@@ -1,5 +1,5 @@
 from algorithm import algorithm
-from graphic3D import animation_3d
+from graphic import animation_3d
 from prettytable import PrettyTable
 from vpython import *
 

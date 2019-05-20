@@ -36,7 +36,6 @@ class animation_3d:
         
         self.ground = box(pos=vector(0,0,0), size=vector(20,0.1,8), color=color.green)
         self.ball = sphere(pos=vector(init_dis_x,init_dis_y,self.total_count - 1), radius=0.2, color=self.color_list[self.color_count - 1], make_trail=True)
-        print(self.color_count)
 
     def run_animation(self):
         delay_rate = 1 / self.cal_res['time_step']
