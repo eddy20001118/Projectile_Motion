@@ -1,9 +1,8 @@
-from algorithm import algorithm
-from graphic import animation_3d
+from graphic import animation_3d, mpt_animation
 from prettytable import PrettyTable
-from vpython import *
 
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import time
 
@@ -14,10 +13,7 @@ class projectile_object:
                           "Initial displacement y", "Drag coef", "Time step", "Total time"]
     params_key_list = ["mass", "ang", "vel", "dis_x",
                        "dis_y", "drag_coef", "time_step", "total_time"]
-
-    name = ""
     file_save_path = "./results/"
-    is_saved = False
 
     @classmethod
     def add_to_list(cls, this):
@@ -54,7 +50,7 @@ class projectile_object:
         return "{:s} : {:s}".format("Object", self.name)
 
     def print_param_menu(self):
-    # This function is to print the parameter menu in the console
+        # This function is to print the parameter menu in the console
         self.print_head_menu()
         print("+----------------------------------------------------------+")
         print("|{:^58s}|".format("Parameters Info"))
@@ -130,8 +126,97 @@ class projectile_object:
             i += 1
 
     def calculate(self):
-        algo = algorithm(self.sys_params)
-        cal_res = algo.execute()
+        f_drag = lambda vel : -((vel * np.abs(vel) * drag_coef) / mass)
+        f_ang = lambda x,y : np.degrees(np.arctan(y/x)) if x != 0 else np.copysign(90, y)
+
+        grav = self.sys_params["grav"]
+        mass = self.sys_params["mass"]
+        ang = self.sys_params["ang"]
+        vel = self.sys_params["vel"]
+        drag_coef = self.sys_params["drag_coef"]
+        time_step = self.sys_params["time_step"]
+        total_time = self.sys_params["total_time"]
+        time_arr = np.arange(0,total_time,time_step)
+        arr_length = time_arr.size
+        accel_x = 0
+        accel_y = -grav
+        vel_x = np.around( np.cos(np.radians(ang)) * vel, decimals=4)
+        vel_y = np.around( np.sin(np.radians(ang)) * vel, decimals=4)
+        dis_x = self.sys_params["dis_x"]
+        dis_y = self.sys_params["dis_y"]
+
+        accel_x_arr = np.zeros(arr_length)
+        accel_y_arr = np.zeros(arr_length)
+        vel_x_arr = np.zeros(arr_length)
+        vel_y_arr = np.zeros(arr_length)
+        dis_x_arr = np.zeros(arr_length)
+        dis_y_arr = np.zeros(arr_length)
+        ang_arr = np.zeros(arr_length)
+
+        accel_x_arr[0] = accel_x
+        accel_y_arr[0] = accel_y
+        vel_x_arr[0] = vel_x
+        vel_y_arr[0] = vel_y
+        dis_x_arr[0] = dis_x
+        dis_y_arr[0] = dis_y
+        ang_arr[0] = ang
+
+        contact_time = -1
+        current_time = float(0.0)
+        i = int(1)
+
+        while i < arr_length:
+            current_time = time_arr[i]
+
+            drag_a_x = f_drag(vel_x)
+            drag_a_y = f_drag(vel_y)
+
+            accel_x = drag_a_x
+            accel_y = - grav + drag_a_y
+
+            vel_x += time_step * accel_x
+            vel_y += time_step * accel_y
+            dis_x += time_step * vel_x
+            dis_y += time_step * vel_y
+            ang = f_ang(vel_x,vel_y)
+
+            if dis_y_arr[i-1] > 0 and dis_y < 0:
+                contact_time = current_time
+            
+            accel_x_arr[i] = accel_x
+            accel_y_arr[i] = accel_y
+            vel_x_arr[i] = vel_x
+            vel_y_arr[i] = vel_y
+            dis_x_arr[i] = dis_x
+            dis_y_arr[i] = dis_y
+            ang_arr[i] = ang
+
+            i += 1
+
+        # Summarise key information
+        max_height = np.max(dis_y_arr)
+        min_height = np.min(dis_y_arr)
+        max_dis_x = np.max(dis_x_arr)
+        min_dis_x = np.min(dis_x_arr)
+
+        cal_res = {
+            "accel_y_arr": np.around(accel_y_arr, decimals=4),
+            "accel_x_arr": np.around(accel_x_arr, decimals=4),
+            "vel_y_arr": np.around(vel_y_arr, decimals=4),
+            "vel_x_arr": np.around(vel_x_arr, decimals=4),
+            "dis_y_arr": np.around(dis_y_arr, decimals=4),
+            "dis_x_arr": np.around(dis_x_arr, decimals=4),
+            "ang_arr": np.around(ang_arr, decimals=4),
+            "time_arr": np.around(time_arr, decimals=2),
+            "length": arr_length,
+            "max_height": max_height,
+            "min_height": min_height,
+            "max_dis_x": max_dis_x,
+            "min_dis_x": min_dis_x,
+            "contact_time": contact_time,
+            "time_step": time_step,
+            "is_calculated": True
+        }
         self.cal_res = cal_res
 
     def print_res_table(self):
@@ -226,14 +311,9 @@ class projectile_object:
     @classmethod
     def run_animation(cls):
         for ob in cls.object_list:
-            cal_res = ob.cal_res
-            ob.animation = animation_3d(cal_res)
-
-        for ob in cls.object_list:
-            ob.animation.run_animation()
-
-        animation_3d.exit_animation()
-
+            ob.animation = mpt_animation(ob)
+        mpt_animation.run_animation()
+        
     @classmethod
     def plot_single_graph(cls, title, x_label, y_label, x_key, y_key):
         plt.xlabel(x_label)
