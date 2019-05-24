@@ -1,11 +1,12 @@
-from graphic import animation_3d, mpt_animation
+from graphic import *
 from prettytable import PrettyTable
 
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import time
-
+import threading
+import traceback
 
 class projectile_object:
     object_list = []
@@ -109,7 +110,7 @@ class projectile_object:
         except ValueError:
             print("Invalid input, try again")
             time.sleep(1)
-            self.print_param_menu(sys_params)
+            self.print_param_menu()
             # Internal call for inputting one more time
             self.set_single_param(prompt, key)
 
@@ -126,6 +127,7 @@ class projectile_object:
             i += 1
 
     def calculate(self):
+        
         f_drag = lambda vel : -((vel * np.abs(vel) * drag_coef) / mass)
         f_ang = lambda x,y : np.degrees(np.arctan(y/x)) if x != 0 else np.copysign(90, y)
 
@@ -310,15 +312,21 @@ class projectile_object:
 
     @classmethod
     def run_animation(cls):
-        for ob in cls.object_list:
-            ob.animation = mpt_animation(ob)
-        mpt_animation.run_animation()
-        
+        try:
+            # Run 2D animation using matplotlib
+            if matplotlib_exist:
+                for ob in cls.object_list:
+                    ob.animation = mpt_animation(ob)
+                run_animation_2d()
+        except:
+            pass
+
     @classmethod
     def plot_single_graph(cls, title, x_label, y_label, x_key, y_key):
         plt.xlabel(x_label)
         plt.ylabel(y_label)
         plt.title(title)
+        plt.grid()
 
         for ob in cls.object_list:
 
@@ -329,51 +337,59 @@ class projectile_object:
                 x_data = cal_res[x_key]
                 y_data = cal_res[y_key]
                 plt.plot(x_data, y_data, label=ob.name)
+
+                # Plot the maximum point
+                if y_key is "dis_y_arr":
+                    max_y = np.max(y_data)
+                    index_y = list(y_data).index(max_y)
+                    max_x = x_data[index_y]
+                    plt.plot(max_x,max_y,'ro')
+                    plt.text(max_x,max_y,"Highest Point")
                 plt.legend(loc='upper right')
 
     @classmethod
     def plot_graphs(cls, index):
         if index is "1":
             cls.plot_single_graph("Acceleration x", "time (s)",
-                                  "accel (m/s^2)", "time_arr", "accel_x_arr")
+                                  "acceleration (m/s^2)", "time_arr", "accel_x_arr")
         elif index is "2":
             cls.plot_single_graph("Acceleration y", "time (s)",
-                                  "accel (m/s^2)", "time_arr", "accel_y_arr")
+                                  "acceleration (m/s^2)", "time_arr", "accel_y_arr")
         elif index is "3":
             cls.plot_single_graph("Velocity x", "time (s)",
-                                  "vel (m/s)", "time_arr", "vel_x_arr")
+                                  "velocity (m/s)", "time_arr", "vel_x_arr")
         elif index is "4":
             cls.plot_single_graph("Velocity y", "time (s)",
-                                  "vel (m/s)", "time_arr", "vel_y_arr")
+                                  "velocity (m/s)", "time_arr", "vel_y_arr")
         elif index is "5":
             cls.plot_single_graph("Displacement x", "time (s)",
-                                  "dis (m)", "time_arr", "dis_x_arr")
+                                  "displacement (m)", "time_arr", "dis_x_arr")
         elif index is "6":
             cls.plot_single_graph("Displacement y", "time (s)",
-                                  "dis (m)", "time_arr", "dis_y_arr")
+                                  "displacement (m)", "time_arr", "dis_y_arr")
         elif index is "7":
-            cls.plot_single_graph("Displacement", "dis x (m)",
-                                  "dis x (m)", "dis_x_arr", "dis_y_arr")
+            cls.plot_single_graph("Displacement", "displacement x (m)",
+                                  "displacement x (m)", "dis_x_arr", "dis_y_arr")
         elif index is "8":
             cls.plot_single_graph("Angle", "time (s)",
-                                  "ang (deg)", "time_arr", "ang_arr")
+                                  "angle (deg)", "time_arr", "ang_arr")
         elif index is "9":
-            plt.suptitle("Pendulum Simulator", fontsize=16)
+            plt.suptitle("Projectile Motion Simulator", fontsize=16)
             plt.subplot(2, 2, 1)
             cls.plot_single_graph("Velocity x", "time (s)",
-                                  "vel (m/s)", "time_arr", "vel_x_arr")
+                                  "velocity (m/s)", "time_arr", "vel_x_arr")
 
             plt.subplot(2, 2, 2)
             cls.plot_single_graph("Velocity y", "time (s)",
-                                  "vel (m/s)", "time_arr", "vel_y_arr")
+                                  "velocity (m/s)", "time_arr", "vel_y_arr")
 
             plt.subplot(2, 2, 3)
-            cls.plot_single_graph("Displacement", "dis x (m)",
-                                  "dis y (m)", "dis_x_arr", "dis_y_arr")
+            cls.plot_single_graph("Displacement", "displacement x (m)",
+                                  "displacement y (m)", "dis_x_arr", "dis_y_arr")
 
             plt.subplot(2, 2, 4)
             cls.plot_single_graph("Angle", "time (s)",
-                                  "ang (deg)", "time_arr", "ang_arr")
+                                  "angle (deg)", "time_arr", "ang_arr")
 
             plt.subplots_adjust(wspace=0.5, hspace=0.5)
 

@@ -99,9 +99,6 @@ def case_2_options():
     print("2. View summary")
     print("Quit -- q\n")
 
-def case_4():
-    print("Quit -- q\n")
-
 def object_has_result():
     for ob in projectile_object.object_list:
         if ob.cal_res["is_calculated"]:
@@ -192,10 +189,8 @@ def case_4():
 
 def case_5():
     if object_has_result():
-        try:
-            projectile_object.run_animation()
-        except:
-            pass
+        projectile_object.run_animation()
+        input("Animation finished, press any key to continue")
     else:
         input("No available result to save, press any key to continue")
 
