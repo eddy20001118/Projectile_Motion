@@ -38,7 +38,7 @@ def print_main_menu():
     print("| {:<42s}|".format("2. Calculate"))
     print("| {:<42s}|".format("3. Plot data"))
     print("| {:<42s}|".format("4. Save to CSV"))
-    print("| {:<42s}|".format("5. Open 3-D simulator"))
+    print("| {:<42s}|".format("5. Open 2-D simulator"))
     print("| {:<42s}|".format("Quit -- q"))
     print("+-------------------------------------------+\n")
 
