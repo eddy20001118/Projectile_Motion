@@ -1,19 +1,30 @@
-from graphic import *
-from prettytable import PrettyTable
-
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-import time
-import threading
 import traceback
+import threading
+import time
+import os
+run_programme = False
+
+
+try:
+    import matplotlib.pyplot as plt
+    from prettytable import PrettyTable
+    from graphic import *
+    import numpy as np
+    run_programme = True
+except ModuleNotFoundError:
+    print(traceback.format_exc())
+    input("Press any key to continue")
+
 
 class projectile_object:
     object_list = []
     params_prompt_list = ["Mass", "Angle", "Velocity", "Initial displacement x",
-                          "Initial displacement y", "Drag coef", "Time step", "Total time"]
-    params_key_list = ["mass", "ang", "vel", "dis_x",
-                       "dis_y", "drag_coef", "time_step", "total_time"]
+                          "Initial displacement y", "Drag coef", "Enable ground [T/F]",
+                          "Restitution coef", "Time step", "Total time"]
+
+    params_key_list = ["mass", "ang", "vel", "dis_x", "dis_y", "drag_coef",
+                       "en_g", "rst_coef", "time_step", "total_time"]
+
     file_save_path = "./results/"
 
     @classmethod
@@ -38,8 +49,10 @@ class projectile_object:
             "dis_x": float(0.0),
             "dis_y": float(30.0),
             "drag_coef": float(0.0025),
+            "en_g": True,
+            "rst_coef": float(0.85),
             "time_step": float(0.02),
-            "total_time": float(3.0)
+            "total_time": float(30)
         }
         self.cal_res = {  # Output result variable
             "is_calculated": False
@@ -56,14 +69,26 @@ class projectile_object:
         print("+----------------------------------------------------------+")
         print("|{:^58s}|".format("Parameters Info"))
         print("+----------------------------------------------------------+")
-        print("| 1. Mass: {:<47s} |".format(str(self.sys_params["mass"])+" (kg)"))
-        print("| 2. Angle: {:<46s} |".format(str(self.sys_params["ang"])+" (deg)"))
-        print("| 3. Velocity: {:<43s} |".format(str(self.sys_params["vel"])+" (m/s)"))
-        print("| 4. Initial displacement x: {:<29s} |".format(str(self.sys_params["dis_x"])+" (m)"))
-        print("| 5. Initial displacement y: {:<29s} |".format(str(self.sys_params["dis_y"])+" (m)"))
-        print("| 6. Drag coef: {:<42s} |".format(str(self.sys_params["drag_coef"])))
-        print("| 7. Time step: {:<42s} |".format(str(self.sys_params["time_step"])+" (s)"))
-        print("| 8. Total time: {:<41s} |".format(str(self.sys_params["total_time"])+" (s)"))
+        print("| 1. Mass: {:<47s} |".format(
+            str(self.sys_params["mass"])+" (kg)"))
+        print("| 2. Angle: {:<46s} |".format(
+            str(self.sys_params["ang"])+" (deg)"))
+        print("| 3. Velocity: {:<43s} |".format(
+            str(self.sys_params["vel"])+" (m/s)"))
+        print("| 4. Initial displacement x: {:<29s} |".format(
+            str(self.sys_params["dis_x"])+" (m)"))
+        print("| 5. Initial displacement y: {:<29s} |".format(
+            str(self.sys_params["dis_y"])+" (m)"))
+        print("| 6. Drag coef: {:<42s} |".format(
+            str(self.sys_params["drag_coef"])))
+        print("| 7. Enable ground: {:<38s} |".format(
+            str(self.sys_params["en_g"])))
+        print("| 8. Restitution coef: {:<35s} |".format(
+            str(self.sys_params["rst_coef"])))
+        print("| 9. Time step: {:<42s} |".format(
+            str(self.sys_params["time_step"])+" (s)"))
+        print("| 10. Total time: {:<40s} |".format(
+            str(self.sys_params["total_time"])+" (s)"))
         print("| Quit -- q {:<46s} |".format(""))
         print("+----------------------------------------------------------+\n")
 
@@ -89,15 +114,16 @@ class projectile_object:
                 sys_params[key] = default
 
             elif param_input is not "":
-                res = float(param_input)
 
-                if (key == "mass" or key == "time_step" or key == "total_time") and res == 0:
-                    raise ValueError()
-
-                if sys_params["ang"] != 0 and sys_params["vel"] == 0:
-                    print(
-                        "\nWarning: Velocity is set to 0, angle in any value would not take effects\n")
-                    input("Press any key to continue")
+                if key == "en_g":
+                    if param_input is "T" or param_input is "t":
+                        res = True
+                    elif param_input is "F" or param_input is "f":
+                        res = False
+                else:
+                    res = float(param_input)
+                    if (key is "mass" or key is "time_step" or key is "total_time") and res == 0:
+                        raise ValueError()
 
                 sys_params[key] = res
                 self.cal_res["is_calculated"] = False
@@ -127,25 +153,30 @@ class projectile_object:
             i += 1
 
     def calculate(self):
-        
-        f_drag = lambda vel : -((vel * np.abs(vel) * drag_coef) / mass)
-        f_ang = lambda x,y : np.degrees(np.arctan(y/x)) if x != 0 else np.copysign(90, y)
 
         grav = self.sys_params["grav"]
         mass = self.sys_params["mass"]
         ang = self.sys_params["ang"]
         vel = self.sys_params["vel"]
         drag_coef = self.sys_params["drag_coef"]
+        enable_ground = self.sys_params["en_g"]
+        rst_coef = self.sys_params["rst_coef"]
         time_step = self.sys_params["time_step"]
         total_time = self.sys_params["total_time"]
-        time_arr = np.arange(0,total_time,time_step)
+        time_arr = np.arange(0, total_time, time_step)
         arr_length = time_arr.size
         accel_x = 0
         accel_y = -grav
-        vel_x = np.around( np.cos(np.radians(ang)) * vel, decimals=4)
-        vel_y = np.around( np.sin(np.radians(ang)) * vel, decimals=4)
+        vel_x = np.around(np.cos(np.radians(ang)) * vel, decimals=4)
+        vel_y = np.around(np.sin(np.radians(ang)) * vel, decimals=4)
         dis_x = self.sys_params["dis_x"]
         dis_y = self.sys_params["dis_y"]
+        bouncing_finish = False
+
+        def f_drag(vel): return -((vel * np.abs(vel) * drag_coef) / mass)
+
+        def f_ang(x, y): return np.degrees(
+            np.arctan(y/x)) if x != 0 else np.copysign(90, y)
 
         accel_x_arr = np.zeros(arr_length)
         accel_y_arr = np.zeros(arr_length)
@@ -171,20 +202,31 @@ class projectile_object:
             current_time = time_arr[i]
 
             drag_a_x = f_drag(vel_x)
-            drag_a_y = f_drag(vel_y)
-
             accel_x = drag_a_x
-            accel_y = - grav + drag_a_y
-
             vel_x += time_step * accel_x
-            vel_y += time_step * accel_y
             dis_x += time_step * vel_x
-            dis_y += time_step * vel_y
-            ang = f_ang(vel_x,vel_y)
+
+            if not bouncing_finish:
+                drag_a_y = f_drag(vel_y)
+                accel_y = - grav + drag_a_y
+                vel_y += time_step * accel_y
+                dis_y += time_step * vel_y
+                ang = f_ang(vel_x, vel_y)
+            else:
+                accel_y = -grav
+                vel_y = 0
+                dis_y = 0
+                ang = 0
 
             if dis_y_arr[i-1] > 0 and dis_y < 0:
                 contact_time = current_time
-            
+                if enable_ground:
+                    dis_y = 0
+                    if -0.5 < vel_y < 0.5:
+                        bouncing_finish = True
+                    else:
+                        vel_y = -vel_y * rst_coef
+
             accel_x_arr[i] = accel_x
             accel_y_arr[i] = accel_y
             vel_x_arr[i] = vel_x
@@ -201,7 +243,7 @@ class projectile_object:
         max_dis_x = np.max(dis_x_arr)
         min_dis_x = np.min(dis_x_arr)
 
-        cal_res = {
+        self.cal_res = {
             "accel_y_arr": np.around(accel_y_arr, decimals=4),
             "accel_x_arr": np.around(accel_x_arr, decimals=4),
             "vel_y_arr": np.around(vel_y_arr, decimals=4),
@@ -219,7 +261,6 @@ class projectile_object:
             "time_step": time_step,
             "is_calculated": True
         }
-        self.cal_res = cal_res
 
     def print_res_table(self):
         cal_res = self.cal_res
@@ -308,7 +349,8 @@ class projectile_object:
 
                 # close the file after finished
                 f.close()
-                self.is_saved = True
+            else:
+                print("{:s}.csv was not saved.".format(self.name))
 
     @classmethod
     def run_animation(cls):
@@ -343,8 +385,8 @@ class projectile_object:
                     max_y = np.max(y_data)
                     index_y = list(y_data).index(max_y)
                     max_x = x_data[index_y]
-                    plt.plot(max_x,max_y,'ro')
-                    plt.text(max_x,max_y,"Highest Point")
+                    plt.plot(max_x, max_y, 'ro')
+                    plt.text(max_x, max_y, "Highest Point")
                 plt.legend(loc='upper right')
 
     @classmethod

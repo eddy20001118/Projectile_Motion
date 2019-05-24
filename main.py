@@ -4,16 +4,7 @@
 import os
 import traceback
 import platform
-from projectile_object import projectile_object
-run_programme = True
-
-try:
-    import matplotlib.pyplot as plt
-    from prettytable import PrettyTable
-except ModuleNotFoundError:
-    print(traceback.format_exc())
-    input("Press any key to continue")
-    run_programme = False
+from projectile_object import *
 
 # Check platform
 sys_platform = platform.system()
@@ -28,6 +19,7 @@ else:
 title = "DUISC Advanced Physics Project"
 author_copyright = "Yuhao Li 2019"
 name = "Projectile Motion Simulator"
+
 
 def print_head_menu():
     os.system(sys_clear)
@@ -50,10 +42,11 @@ def print_main_menu():
     print("| {:<42s}|".format("Quit -- q"))
     print("+-------------------------------------------+\n")
 
+
 def print_object_menu(option_list_callback):
     print_head_menu()
     print("+-------------------------------------------------------------+")
-    print("|{:^30s}|{:^30s}|".format("Objects","Calculation Status"))
+    print("|{:^30s}|{:^30s}|".format("Objects", "Calculation Status"))
     print("+-------------------------------------------------------------+")
     index = int(1)
 
@@ -64,9 +57,10 @@ def print_object_menu(option_list_callback):
         index += 1
 
     if len(projectile_object.object_list) == 0:
-        print("|{:^30s}|{:^30s}|".format("",""))
+        print("|{:^30s}|{:^30s}|".format("", ""))
     print("+-------------------------------------------------------------+\n")
     option_list_callback()
+
 
 def print_plot_menu():
     # This function is to print ploting option menu in the console
@@ -87,31 +81,35 @@ def print_plot_menu():
     print("| {:<56s} |".format("Quit -- q"))
     print("+----------------------------------------------------------+\n")
 
-def case_1_options():
+
+def case_1_options_callback():
     print("1. Add objects")
     print("2. Edit parameters")
     print("3. Delete an object")
     print("4. Delete all objects")
     print("Quit -- q\n")
 
-def case_2_options():
+
+def case_2_options_callback():
     print("1. View result table")
     print("2. View summary")
     print("Quit -- q\n")
+
 
 def object_has_result():
     for ob in projectile_object.object_list:
         if ob.cal_res["is_calculated"]:
             return True
-    
+
     return False
 
-def case_1():
-    print_object_menu(case_1_options)
+
+def g_edit_objects():
+    print_object_menu(case_1_options_callback)
     user_option = ""
 
     while user_option is not "q":
-        print_object_menu(case_1_options)
+        print_object_menu(case_1_options_callback)
         user_option = input("Options: ")
 
         try:
@@ -124,7 +122,7 @@ def case_1():
                 object_index = int(input("Object index: ")) - 1
                 ob = projectile_object.object_list[object_index]
                 ob.set_params()
-            
+
             elif user_option is "3":
                 object_index = int(input("Object index: ")) - 1
                 ob = projectile_object.object_list[object_index]
@@ -133,22 +131,22 @@ def case_1():
             elif user_option is "4":
                 projectile_object.remove_all()
         except:
-            print(traceback.format_exc())
-            input()
+            pass
 
-def case_2():
-    print_object_menu(case_2_options)
+
+def g_calculation():
+    print_object_menu(case_2_options_callback)
 
     for ob in projectile_object.object_list:
         if not ob.cal_res["is_calculated"]:
             ob.calculate()
-        print_object_menu(case_2_options)
-    
+        print_object_menu(case_2_options_callback)
+
     if object_has_result():
         user_option = ""
 
         while user_option is not "q":
-            print_object_menu(case_2_options)
+            print_object_menu(case_2_options_callback)
             user_option = input("Options: ")
 
             try:
@@ -167,7 +165,8 @@ def case_2():
     else:
         input("No available result to plot, press any key to continue")
 
-def case_3():
+
+def g_plot_data():
     if object_has_result():
         print_plot_menu()
         user_option = ""
@@ -179,7 +178,8 @@ def case_3():
     else:
         input("No available result to plot, press any key to continue")
 
-def case_4():
+
+def g_save_csv():
     if object_has_result():
         for ob in projectile_object.object_list:
             ob.save_to_csv()
@@ -187,12 +187,14 @@ def case_4():
     else:
         input("No available result to save, press any key to continue")
 
-def case_5():
+
+def g_animation():
     if object_has_result():
         projectile_object.run_animation()
         input("Animation finished, press any key to continue")
     else:
         input("No available result to save, press any key to continue")
+
 
 def main():
     input_options = ""  # Input option variable
@@ -204,30 +206,26 @@ def main():
             input_options = input("Options: ")
 
             if input_options is "1":
-                case_1()
+                g_edit_objects()
 
             elif input_options is "2":
-                case_2()
+                g_calculation()
 
             elif input_options is "3":
-                case_3()
+                g_plot_data()
 
             elif input_options is "4":
-                case_4()
+                g_save_csv()
 
             elif input_options is "5":
-                case_5()
+                g_animation()
 
             elif input_options is "q":
                 print("Exit the programme...")
 
-        except ValueError:
-            print(traceback.format_exc())
-            input("Invalid input, press any key to continue")
-
         except Exception:
-            print(traceback.format_exc())
-            input("\n Press any key to continue")
+            pass
+
 
 if __name__ == "__main__" and run_programme:
     main()
