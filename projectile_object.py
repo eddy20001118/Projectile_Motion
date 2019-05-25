@@ -6,10 +6,11 @@ run_programme = False
 
 
 try:
-    import matplotlib.pyplot as plt
-    from prettytable import PrettyTable
-    from graphic import *
     import numpy as np
+    import matplotlib.pyplot as plt
+
+    from matplotlib import animation
+    from prettytable import PrettyTable
     run_programme = True
 except ModuleNotFoundError:
     print(traceback.format_exc())
@@ -115,11 +116,13 @@ class projectile_object:
 
             elif param_input is not "":
 
-                if key == "en_g":
+                if key is "en_g":
                     if param_input is "T" or param_input is "t":
                         res = True
                     elif param_input is "F" or param_input is "f":
                         res = False
+                    else:
+                        raise ValueError()
                 else:
                     res = float(param_input)
                     if (key is "mass" or key is "time_step" or key is "total_time") and res == 0:
@@ -153,7 +156,6 @@ class projectile_object:
             i += 1
 
     def calculate(self):
-
         grav = self.sys_params["grav"]
         mass = self.sys_params["mass"]
         ang = self.sys_params["ang"]
@@ -213,19 +215,19 @@ class projectile_object:
                 dis_y += time_step * vel_y
                 ang = f_ang(vel_x, vel_y)
             else:
-                accel_y = -grav
                 vel_y = 0
                 dis_y = 0
                 ang = 0
 
             if dis_y_arr[i-1] > 0 and dis_y < 0:
-                contact_time = current_time
+                if contact_time == -1:
+                    contact_time = current_time  # first time contacting the ground
+
                 if enable_ground:
                     dis_y = 0
+                    vel_y = -vel_y * rst_coef
                     if -0.5 < vel_y < 0.5:
                         bouncing_finish = True
-                    else:
-                        vel_y = -vel_y * rst_coef
 
             accel_x_arr[i] = accel_x
             accel_y_arr[i] = accel_y
@@ -352,14 +354,43 @@ class projectile_object:
             else:
                 print("{:s}.csv was not saved.".format(self.name))
 
+    def add_animation(self):
+        def init():
+            return line, dot,
+
+        def animate(i):
+            line.set_data(dis_x_arr[:i], dis_y_arr[:i])
+            dot.set_data(dis_x_arr[i], dis_y_arr[i])
+            return line, dot,
+
+        name = self.name
+        cal_res = self.cal_res
+        dis_x_arr = cal_res["dis_x_arr"]
+        dis_y_arr = cal_res["dis_y_arr"]
+        time_step = cal_res["time_step"] * 1000
+        length = cal_res["length"]
+        line, = plt.plot(dis_x_arr, dis_y_arr, ls='--', label=name)
+        dot, = plt.plot([], [], "ro")
+        self.ani = animation.FuncAnimation(fig=plt.figure(1),
+                                           frames=length,
+                                           func=animate,
+                                           init_func=init,
+                                           interval=time_step,
+                                           blit=False,
+                                           repeat=False)
+
     @classmethod
     def run_animation(cls):
         try:
-            # Run 2D animation using matplotlib
-            if matplotlib_exist:
-                for ob in cls.object_list:
-                    ob.animation = mpt_animation(ob)
-                run_animation_2d()
+            for ob in cls.object_list:
+                ob.add_animation()
+
+            plt.legend(loc='upper right')
+            plt.grid()
+            plt.xlabel("displacement x (m)")
+            plt.ylabel("displacement y (m)")
+            plt.title("Projectile Motion Simulator")
+            plt.show()
         except:
             pass
 

@@ -34,7 +34,7 @@ def print_main_menu():
     print("+-------------------------------------------+")
     print("|{:^43s}|".format("Main menu"))
     print("+-------------------------------------------+")
-    print("| {:<42s}|".format("1. Edit objects"))
+    print("| {:<42s}|".format("1. Edit projectiles"))
     print("| {:<42s}|".format("2. Calculate"))
     print("| {:<42s}|".format("3. Plot data"))
     print("| {:<42s}|".format("4. Save to CSV"))
@@ -83,10 +83,10 @@ def print_plot_menu():
 
 
 def case_1_options_callback():
-    print("1. Add objects")
+    print("1. Add projectiles")
     print("2. Edit parameters")
-    print("3. Delete an object")
-    print("4. Delete all objects")
+    print("3. Delete an projectile")
+    print("4. Delete all projectiles")
     print("Quit -- q\n")
 
 
