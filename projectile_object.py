@@ -1,6 +1,4 @@
 import traceback
-import threading
-import time
 import os
 run_programme = False
 
@@ -48,12 +46,12 @@ class projectile_object:
             "ang": float(60.0),
             "vel": float(10.0),
             "dis_x": float(0.0),
-            "dis_y": float(30.0),
+            "dis_y": float(2.0),
             "drag_coef": float(0.0025),
             "en_g": True,
             "rst_coef": float(0.85),
             "time_step": float(0.02),
-            "total_time": float(30)
+            "total_time": float(12.0)
         }
         self.cal_res = {  # Output result variable
             "is_calculated": False
@@ -154,6 +152,9 @@ class projectile_object:
             exit_code = self.set_single_param(
                 prompt, self.params_key_list[i])
             i += 1
+        
+        if exit_code is not "interrupt":
+            input("Parameters set, press any key to continue")
 
     def calculate(self):
         grav = self.sys_params["grav"]

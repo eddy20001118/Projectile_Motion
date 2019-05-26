@@ -163,7 +163,7 @@ def g_calculation():
             except:
                 pass
     else:
-        input("No available result to plot, press any key to continue")
+        input("No available results to plot, press any key to continue")
 
 
 def g_plot_data():
@@ -176,7 +176,7 @@ def g_plot_data():
             user_option = input("Options: ")
             projectile_object.plot_graphs(user_option)
     else:
-        input("No available result to plot, press any key to continue")
+        input("No available results to plot, press any key to continue")
 
 
 def g_save_csv():
@@ -185,7 +185,7 @@ def g_save_csv():
             ob.save_to_csv()
         input("Saving complete, press any key to continue")
     else:
-        input("No available result to save, press any key to continue")
+        input("No available results to save, press any key to continue")
 
 
 def g_animation():
@@ -193,7 +193,7 @@ def g_animation():
         projectile_object.run_animation()
         input("Animation finished, press any key to continue")
     else:
-        input("No available result to save, press any key to continue")
+        input("No available results to save, press any key to continue")
 
 
 def main():
