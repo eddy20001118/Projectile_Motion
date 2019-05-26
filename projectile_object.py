@@ -1,7 +1,8 @@
 import traceback
 import os
-run_programme = False
+import time
 
+run_programme = False
 
 try:
     import numpy as np
@@ -38,7 +39,7 @@ class projectile_object:
     def remove_all(cls):
         cls.object_list = []
 
-    def __init__(self, name, head_menu_callback):
+    def __init__(self, name):
         self.name = name
         self.sys_params = {
             "grav": float(9.81),
@@ -57,16 +58,15 @@ class projectile_object:
             "is_calculated": False
         }
         self.add_to_list(self)
-        self.print_head_menu = head_menu_callback
 
     def __repr__(self):
         return "{:s} : {:s}".format("Object", self.name)
 
-    def print_param_menu(self):
+    def print_param_menu(self, print_head_menu):
         # This function is to print the parameter menu in the console
-        self.print_head_menu()
+        print_head_menu()
         print("+----------------------------------------------------------+")
-        print("|{:^58s}|".format("Parameters Info"))
+        print("|{:^58s}|".format("Parameters of "+self.name))
         print("+----------------------------------------------------------+")
         print("| 1. Mass: {:<47s} |".format(
             str(self.sys_params["mass"])+" (kg)"))
@@ -91,7 +91,7 @@ class projectile_object:
         print("| Quit -- q {:<46s} |".format(""))
         print("+----------------------------------------------------------+\n")
 
-    def set_single_param(self, prompt, key):
+    def set_single_param(self, prompt, key, print_head_menu):
         # This function is for setting the parameters
         # inputs:	hint 	        (string)		        the hint for the input
         #           default 	    (float)		            default value
@@ -131,30 +131,28 @@ class projectile_object:
 
             # Refresh the parameter menu every time when a parameter is set.
             self.sys_params = sys_params
-            self.print_param_menu()
+            self.print_param_menu(print_head_menu)
             return "normal-quit"
 
         except ValueError:
             print("Invalid input, try again")
             time.sleep(1)
-            self.print_param_menu()
+            self.print_param_menu(print_head_menu)
             # Internal call for inputting one more time
-            self.set_single_param(prompt, key)
+            self.set_single_param(prompt, key, print_head_menu)
 
-    def set_params(self):
+    def set_params(self,print_head_menu):
         exit_code = ""
         i = 0
-        self.print_param_menu()
+        self.print_param_menu(print_head_menu)
 
         while i < len(self.params_key_list) and exit_code is not "interrupt":
-            prompt = "Option[{:d}] - {:s}: ".format(
-                i+1, self.params_prompt_list[i])
-            exit_code = self.set_single_param(
-                prompt, self.params_key_list[i])
+            prompt = "Option[{:d}] - {:s}: ".format(i+1, self.params_prompt_list[i])
+            exit_code = self.set_single_param(prompt, self.params_key_list[i], print_head_menu)
             i += 1
-        
+
         if exit_code is not "interrupt":
-            input("Parameters set, press any key to continue")
+            input("Parameters are set, press any key to continue")
 
     def calculate(self):
         grav = self.sys_params["grav"]
@@ -364,13 +362,11 @@ class projectile_object:
             dot.set_data(dis_x_arr[i], dis_y_arr[i])
             return line, dot,
 
-        name = self.name
-        cal_res = self.cal_res
-        dis_x_arr = cal_res["dis_x_arr"]
-        dis_y_arr = cal_res["dis_y_arr"]
-        time_step = cal_res["time_step"] * 1000
-        length = cal_res["length"]
-        line, = plt.plot(dis_x_arr, dis_y_arr, ls='--', label=name)
+        dis_x_arr = self.cal_res["dis_x_arr"]
+        dis_y_arr = self.cal_res["dis_y_arr"]
+        time_step = self.cal_res["time_step"] * 1000
+        length = self.cal_res["length"]
+        line, = plt.plot(dis_x_arr, dis_y_arr, ls='--', label=self.name)
         dot, = plt.plot([], [], "ro")
         self.ani = animation.FuncAnimation(fig=plt.figure(1),
                                            frames=length,

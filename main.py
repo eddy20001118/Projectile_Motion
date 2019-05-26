@@ -38,15 +38,15 @@ def print_main_menu():
     print("| {:<42s}|".format("2. Calculate"))
     print("| {:<42s}|".format("3. Plot data"))
     print("| {:<42s}|".format("4. Save to CSV"))
-    print("| {:<42s}|".format("5. Open 2-D simulator"))
+    print("| {:<42s}|".format("5. Open 2-D animation"))
     print("| {:<42s}|".format("Quit -- q"))
     print("+-------------------------------------------+\n")
 
 
-def print_object_menu(option_list_callback):
+def print_projectile_menu(option_list_callback):
     print_head_menu()
     print("+-------------------------------------------------------------+")
-    print("|{:^30s}|{:^30s}|".format("Objects", "Calculation Status"))
+    print("|{:^30s}|{:^30s}|".format("Projectiles", "Calculation Status"))
     print("+-------------------------------------------------------------+")
     index = int(1)
 
@@ -75,9 +75,9 @@ def print_plot_menu():
     print("| {:<56s} |".format("4. Print velocity y"))
     print("| {:<56s} |".format("5. Print displacement x"))
     print("| {:<56s} |".format("6. Print displacement y"))
-    print("| {:<56s} |".format("7. Print resultant displacement"))
+    print("| {:<56s} |".format("7. Print x-y displacement"))
     print("| {:<56s} |".format("8. Print angle"))
-    print("| {:<56s} |".format("9. Print four summative graphs"))
+    print("| {:<56s} |".format("9. Print four comprehensive graphs"))
     print("| {:<56s} |".format("Quit -- q"))
     print("+----------------------------------------------------------+\n")
 
@@ -104,24 +104,23 @@ def object_has_result():
     return False
 
 
-def g_edit_objects():
-    print_object_menu(case_1_options_callback)
+def g_edit_projectiles():
     user_option = ""
 
     while user_option is not "q":
-        print_object_menu(case_1_options_callback)
+        print_projectile_menu(case_1_options_callback)
         user_option = input("Options: ")
 
         try:
             if user_option is "1":
                 object_names = input("Object name: ").split(",")
                 for name in object_names:
-                    projectile_object(name, print_head_menu)
+                    projectile_object(name)
 
             elif user_option is "2":
                 object_index = int(input("Object index: ")) - 1
                 ob = projectile_object.object_list[object_index]
-                ob.set_params()
+                ob.set_params(print_head_menu)
 
             elif user_option is "3":
                 object_index = int(input("Object index: ")) - 1
@@ -135,18 +134,16 @@ def g_edit_objects():
 
 
 def g_calculation():
-    print_object_menu(case_2_options_callback)
-
     for ob in projectile_object.object_list:
         if not ob.cal_res["is_calculated"]:
             ob.calculate()
-        print_object_menu(case_2_options_callback)
+        print_projectile_menu(case_2_options_callback)
 
     if object_has_result():
         user_option = ""
 
         while user_option is not "q":
-            print_object_menu(case_2_options_callback)
+            print_projectile_menu(case_2_options_callback)
             user_option = input("Options: ")
 
             try:
@@ -168,7 +165,6 @@ def g_calculation():
 
 def g_plot_data():
     if object_has_result():
-        print_plot_menu()
         user_option = ""
 
         while user_option is not "q":
@@ -206,7 +202,7 @@ def main():
             input_options = input("Options: ")
 
             if input_options is "1":
-                g_edit_objects()
+                g_edit_projectiles()
 
             elif input_options is "2":
                 g_calculation()
