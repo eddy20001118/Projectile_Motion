@@ -138,8 +138,7 @@ class projectile_object:
             print("Invalid input, try again")
             time.sleep(1)
             self.print_param_menu(print_head_menu)
-            # Internal call for inputting one more time
-            self.set_single_param(prompt, key, print_head_menu)
+            self.set_single_param(prompt, key, print_head_menu) #`` re-call for a re-input
 
     def set_params(self, print_head_menu):
         exit_code = ""
@@ -203,7 +202,6 @@ class projectile_object:
 
         while i < arr_length:
             current_time = time_arr[i]
-
             drag_a_x = f_drag(vel_x)
             accel_x = drag_a_x
             vel_x += time_step * accel_x
@@ -265,7 +263,8 @@ class projectile_object:
             "is_calculated": True
         }
 
-    def print_res_table(self):
+    def print_res_table(self,print_head_menu):
+        print_head_menu()
         cal_res = self.cal_res
 
         # Preview table
@@ -284,7 +283,8 @@ class projectile_object:
         print("First {:d} result points printed\n".format(list_len))
         input("Press any key to continue")
 
-    def print_summary(self):
+    def print_summary(self, print_head_menu):
+        print_head_menu()
         cal_res = self.cal_res
 
         # Summary block
@@ -302,10 +302,8 @@ class projectile_object:
         print("+----------------------------------------------------------+")
         print("| 1. Maximum height: {:<38.2f}|".format(max_height))
         print("| 2. Minimum height: {:<38.2f}|".format(min_height))
-        print(
-            "| 3. Maximum horizontal displacement: {:<21.2f}|".format(max_dis_x))
-        print(
-            "| 4. Minimum horizontal displacement: {:<21.2f}|".format(min_dis_x))
+        print("| 3. Maximum horizontal displacement: {:<21.2f}|".format(max_dis_x))
+        print("| 4. Minimum horizontal displacement: {:<21.2f}|".format(min_dis_x))
         print("| 5. Number of data points: {:<31.2f}|".format(data_points))
         print("| 6. Contact ground time: {:<33s}|".format(str(contact_time)))
         print("+----------------------------------------------------------+\n")
@@ -324,11 +322,8 @@ class projectile_object:
 
             if (user_option == "y" or user_option == "Y") or not os.path.isfile(full_path):
                 cal_res = self.cal_res
-                # open a file with "write" mode
-                f = open(full_path, "w")
-
-                # write the head
-                f.write("time,accel_x,accel_y,vel_x,vel_y,dis_x,dis_y,ang\n")
+                f = open(full_path, "w") # open a file with "write" mode
+                f.write("time,accel_x,accel_y,vel_x,vel_y,dis_x,dis_y,ang\n") # write the head
 
                 # unpack the result package
                 time_arr = cal_res["time_arr"]
@@ -339,9 +334,7 @@ class projectile_object:
                 dis_x_arr = cal_res["dis_x_arr"]
                 dis_y_arr = cal_res["dis_y_arr"]
                 ang_arr = cal_res["ang_arr"]
-
                 i = 0
-
                 # write all results
                 while i < len(time_arr):
                     csv_format = "{:.2f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}\n"
@@ -350,8 +343,8 @@ class projectile_object:
                     f.write(next_line)
                     i += 1
 
-                # close the file after finished
-                f.close()
+                f.close() # close the file after finished
+                input("Saving complete, press any key to continue") 
             else:
                 print("{:s}.csv was not saved.".format(self.name))
 
@@ -392,6 +385,8 @@ class projectile_object:
             plt.show()
         except:
             pass
+        finally:
+            input("Animation finished, press any key to continue")
 
     @classmethod
     def plot_single_graph(cls, title, x_label, y_label, x_key, y_key):

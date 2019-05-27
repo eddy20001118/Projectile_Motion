@@ -150,13 +150,12 @@ def g_calculation():
                 if user_option is "1":
                     object_index = int(input("Object index: ")) - 1
                     ob = projectile_object.object_list[object_index]
-                    print_head_menu()
-                    ob.print_res_table()
+                    ob.print_res_table(print_head_menu)
+
                 elif user_option is "2":
                     object_index = int(input("Object index: ")) - 1
                     ob = projectile_object.object_list[object_index]
-                    print_head_menu()
-                    ob.print_summary()
+                    ob.print_summary(print_head_menu)
             except:
                 pass
     else:
@@ -179,7 +178,6 @@ def g_save_csv():
     if object_has_result():
         for ob in projectile_object.object_list:
             ob.save_to_csv()
-        input("Saving complete, press any key to continue")
     else:
         input("No available results to save, press any key to continue")
 
@@ -187,7 +185,6 @@ def g_save_csv():
 def g_animation():
     if object_has_result():
         projectile_object.run_animation()
-        input("Animation finished, press any key to continue")
     else:
         input("No available results to save, press any key to continue")
 
