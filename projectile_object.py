@@ -141,14 +141,16 @@ class projectile_object:
             # Internal call for inputting one more time
             self.set_single_param(prompt, key, print_head_menu)
 
-    def set_params(self,print_head_menu):
+    def set_params(self, print_head_menu):
         exit_code = ""
         i = 0
         self.print_param_menu(print_head_menu)
 
         while i < len(self.params_key_list) and exit_code is not "interrupt":
-            prompt = "Option[{:d}] - {:s}: ".format(i+1, self.params_prompt_list[i])
-            exit_code = self.set_single_param(prompt, self.params_key_list[i], print_head_menu)
+            prompt = "Option[{:d}] - {:s}: ".format(
+                i+1, self.params_prompt_list[i])
+            exit_code = self.set_single_param(
+                prompt, self.params_key_list[i], print_head_menu)
             i += 1
 
         if exit_code is not "interrupt":
@@ -414,7 +416,6 @@ class projectile_object:
                     index_y = list(y_data).index(max_y)
                     max_x = x_data[index_y]
                     plt.plot(max_x, max_y, 'ro')
-                    plt.text(max_x, max_y, "Highest Point")
                 plt.legend(loc='upper right')
 
     @classmethod
