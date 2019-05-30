@@ -178,6 +178,7 @@ def g_save_csv():
     if object_has_result():
         for ob in projectile_object.object_list:
             ob.save_to_csv()
+        input("Saving complete, press any key to continue") 
     else:
         input("No available results to save, press any key to continue")
 

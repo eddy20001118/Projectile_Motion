@@ -99,7 +99,7 @@ class projectile_object:
         #
         # outputs:  exit_code       (string)                exit code of the function
 
-        res = float(0)
+        res = float(0.0)
         sys_params = self.sys_params
         default = sys_params[key]
 
@@ -123,7 +123,7 @@ class projectile_object:
                         raise ValueError()
                 else:
                     res = float(param_input)
-                    if (key is "mass" or key is "time_step" or key is "total_time") and res == 0:
+                    if (key is "mass" or key is "time_step" or key is "total_time") and res <= 0:
                         raise ValueError()
 
                 sys_params[key] = res
@@ -173,6 +173,8 @@ class projectile_object:
         vel_y = np.around(np.sin(np.radians(ang)) * vel, decimals=4)
         dis_x = self.sys_params["dis_x"]
         dis_y = self.sys_params["dis_y"]
+        current_time = time_arr[0]
+        contact_time = -1
         bouncing_finish = False
 
         def f_drag(vel): return -((vel * np.abs(vel) * drag_coef) / mass)
@@ -196,8 +198,6 @@ class projectile_object:
         dis_y_arr[0] = dis_y
         ang_arr[0] = ang
 
-        contact_time = -1
-        current_time = float(0.0)
         i = int(1)
 
         while i < arr_length:
@@ -214,6 +214,7 @@ class projectile_object:
                 dis_y += time_step * vel_y
                 ang = f_ang(vel_x, vel_y)
             else:
+                accel_y = - grav
                 vel_y = 0
                 dis_y = 0
                 ang = 0
@@ -344,7 +345,6 @@ class projectile_object:
                     i += 1
 
                 f.close() # close the file after finished
-                input("Saving complete, press any key to continue") 
             else:
                 print("{:s}.csv was not saved.".format(self.name))
 
