@@ -11,6 +11,7 @@ try:
     from matplotlib import animation
     from prettytable import PrettyTable
     run_programme = True
+
 except ModuleNotFoundError:
     print(traceback.format_exc())
     input("Press any key to continue")
@@ -19,12 +20,12 @@ except ModuleNotFoundError:
 class projectile_object:
     object_list = []        # The static list stores all the projectile objects
 
-    # The prompts of the parameters that will be displayed in the parameter menu
+    # The prompts of the parameters
     params_prompt_list = ["Mass", "Angle", "Velocity", "Initial displacement x",
                           "Initial displacement y", "Drag coef", "Enable ground [T/F]",
                           "Restitution coef", "Time step", "Total time"]
 
-    # The keys of the parameters that will be displayed in the parameter menu
+    # The keys of the parameters which are used to get the corresponding values orderly
     params_key_list = ["mass", "ang", "vel", "dis_x", "dis_y", "drag_coef",
                        "en_g", "rst_coef", "time_step", "total_time"]
 
@@ -73,13 +74,10 @@ class projectile_object:
         }
 
         # the instance is created with a default result set
-        self.cal_res = {  # Output result variable
+        self.cal_res = {
             "is_calculated": False
         }
         self.add_to_list(self) # the instance is added to the list
-
-    def __repr__(self):
-        return "{:s} : {:s}".format("Object", self.name)
 
     def print_param_menu(self, print_head_menu):
         # This function is to print the parameter menu in the console
@@ -113,9 +111,8 @@ class projectile_object:
         print("+----------------------------------------------------------+\n")
 
     def set_single_param(self, prompt, key, print_head_menu):
-        # This function is for setting the parameters
+        # This function is to set the individual parameter
         # inputs:	prompt 	            (string)		        the prompt for the parameter
-        #           default 	        (n/a)		            default value of the parameter
         #           key                 (string)                the key of the parameter in the sys_params set
         #           print_head_menu     (function)              callback function to print the head menu
         #
@@ -202,7 +199,7 @@ class projectile_object:
         time_step = self.sys_params["time_step"]
         total_time = self.sys_params["total_time"]
 
-        # Create time array
+        # Initialise the time array
         time_arr = np.arange(0, total_time, time_step)
         arr_length = time_arr.size
 
@@ -375,11 +372,11 @@ class projectile_object:
 
         if self.cal_res["is_calculated"]:
 
-            # if the folder has not been made yet, make it
+            # if the folder has not been created yet, create it
             if not os.path.isdir(self.file_save_path):
                 os.makedirs(self.file_save_path)
 
-            # if there exists a file with the same filename, ask if to overwrite if
+            # if there exists a file with the same filename, ask if to overwrite
             if os.path.isfile(full_path):
                 user_option = input(
                     "{:s}.csv has already existed, do you wish to overwrite it ? [Y/N]: ".format(self.name))
@@ -481,8 +478,10 @@ class projectile_object:
         # inputs: title             (string)        the title of the graph
         #         x_label           (string)        the x_label of the graph
         #         y_label           (string)        the y_label of the graph
-        #         x_key             (string)        the key in cal_res set which for the data of the x axis
-        #         y_key             (string)        the key in cal_res set which for the data of the y axis
+        #         x_key             (string)        the key in cal_res set which 
+        #                                           for the data of the x axis
+        #         y_key             (string)        the key in cal_res set which 
+        #                                           for the data of the y axis
 
         plt.xlabel(x_label)
         plt.ylabel(y_label)

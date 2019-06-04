@@ -31,7 +31,7 @@ def print_head_menu():
 
 
 def print_main_menu():
-    # This function is to print the main menu in the console
+    # This function prints the main menu in the console
 
     print_head_menu()
     print("+-------------------------------------------+")
@@ -47,7 +47,7 @@ def print_main_menu():
 
 
 def print_projectile_menu(option_list_callback):
-    # This function is for setting the parameters
+    # This function prints the projectile table
     # inputs:	option_list_callback 	        (string)		        the options menu functions
 
     print_head_menu()
@@ -69,7 +69,7 @@ def print_projectile_menu(option_list_callback):
 
 
 def print_plot_menu():
-    # This function is to print ploting option menu in the console
+    # This function prints ploting option menu in the console
 
     print_head_menu()
     print("+----------------------------------------------------------+")
@@ -216,7 +216,7 @@ def g_save_csv():
 def g_animation():
     # The function runs an animation of all the projectiles
     
-    if object_has_result():
+    if object_has_result():  # If there is any result available to be saved
         projectile_object.run_animation()
     else:
         input("No available results to save, press any key to continue")
